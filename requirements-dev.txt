@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# Tests: unitarios y de interfaz (pytest-qt, sin pantalla con QT_QPA_PLATFORM=offscreen)
+pytest==8.4.2
+pytest-qt==4.5.0

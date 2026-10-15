@@ -1,0 +1,71 @@
+# ──────────────────────────────────────────────
+# Entornos virtuales
+# ──────────────────────────────────────────────
+.venv/
+.venv 2/
+venv/
+env/
+
+# ──────────────────────────────────────────────
+# PyInstaller – artefactos de compilación
+# ──────────────────────────────────────────────
+build/
+dist/
+*.spec.bak
+
+# ──────────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.pytest_cache 2/
+*.egg-info/
+.eggs/
+
+# ──────────────────────────────────────────────
+# Sistema operativo
+# ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ──────────────────────────────────────────────
+# VS Code / IDE
+# ──────────────────────────────────────────────
+.vscode/
+.vscode 2/
+*.code-workspace
+
+# ──────────────────────────────────────────────
+# Carpetas y ficheros duplicados (OneDrive)
+# ──────────────────────────────────────────────
+*\ 2/
+*\ 2
+
+# ──────────────────────────────────────────────
+# Instalador y ejecutables compilados
+# ──────────────────────────────────────────────
+installer_output/
+*.exe
+!drivers/msedgedriver.exe
+
+# ──────────────────────────────────────────────
+# Archivos temporales y de caché
+# ──────────────────────────────────────────────
+*.tmp
+*.log
+*.bak
+# ──────────────────────────────────────────────
+# Datos reales y secretos: fuera del repositorio (barrera-secretos)
+# Las exportaciones reales viven en ../DATOS DE EJEMPLO (fuera del repositorio)/
+# ──────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.xlsx
+*.xls
+*.csv
+!ejemplo_estudiantes.xlsx

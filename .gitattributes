@@ -1,0 +1,13 @@
+# Normalizar saltos de línea a LF en el repositorio (evita diferencias CRLF/LF entre Windows y macOS)
+* text=auto eol=lf
+
+# Archivos binarios: nunca tocar
+*.exe binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.pyc binary
