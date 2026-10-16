@@ -1,7 +1,7 @@
 # 🎓 Asistente de Documentación EPLA
 
 <div align="center">
-  <img src="imágenes/logo.png" alt="Logo Escuelas Profesionales Luis Amigó" width="150">
+  <img src="imagenes/logo.png" alt="Logo Escuelas Profesionales Luis Amigó" width="150">
   <br/>
   <strong>Escuelas Profesionales Luis Amigó</strong>
 </div>
@@ -186,7 +186,7 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 │       └── novedades.py             # Ventana de novedades
 ├── drivers/
 │   └── msedgedriver.exe             # Controlador Edge (se actualiza automáticamente)
-├── imágenes/
+├── imagenes/
 │   ├── logo.png                     # Logo institucional
 │   └── logo.ico                     # Icono del ejecutable
 ├── tests/                           # pytest + pytest-qt (QT_QPA_PLATFORM=offscreen)

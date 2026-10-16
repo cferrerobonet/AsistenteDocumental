@@ -47,7 +47,7 @@ UI_CONFIG = {
     "window_title": "Asistente de Documentación",
     "window_size": "700x650",  # Ventana más compacta
     "theme": "superhero",  # Tema moderno oscuro
-    "logo_path": "imágenes/logo.png",
+    "logo_path": "imagenes/logo.png",
     "colors": {
         "primary": "#0078d4",
         "secondary": "#106ebe",

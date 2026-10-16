@@ -6,6 +6,10 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Eliminado
+
+- Carpeta `imágenes/`, copia idéntica de `imagenes/` (la que usan la app, la compilación y el instalador). El README y la configuración de ARM apuntan ya a `imagenes/`.
+
 ## [4.0.0] - 2026-10-15
 
 ### Añadido
