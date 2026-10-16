@@ -85,8 +85,11 @@ class SeleniumBrowserAuth:
 
     MENSAJE_SIN_CREDENCIALES = (
         "No hay credenciales válidas para la cuenta 'secretaria'.\n\n"
-        "Configura en Credential Manager el target EPLA_AUTLOGIN\n"
-        "con usuario que contenga 'secretaria' y su contraseña."
+        + ("Guarda en el llavero de macOS el servicio EPLA_AUTLOGIN\n"
+           "(Terminal: security add-generic-password -s EPLA_AUTLOGIN -a <usuario> -w)\n"
+           if sys.platform == "darwin" else
+           "Configura en Credential Manager el target EPLA_AUTLOGIN\n")
+        + "con usuario que contenga 'secretaria' y su contraseña."
     )
 
     def authenticate(self, callback: Optional[Callable] = None, padre=None):

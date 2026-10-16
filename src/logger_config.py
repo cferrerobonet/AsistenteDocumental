@@ -8,6 +8,11 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
+try:
+    from src.rutas import CARPETA, base_del_sistema
+except ImportError:
+    from rutas import CARPETA, base_del_sistema
+
 _LOGGER_INITIALIZED = False
 
 
@@ -17,8 +22,7 @@ def setup_logging() -> None:
     if _LOGGER_INITIALIZED:
         return
 
-    appdata = os.environ.get("APPDATA", os.path.expanduser("~"))
-    log_dir = os.path.join(appdata, "AsistenteEPLA", "logs")
+    log_dir = os.path.join(base_del_sistema(), CARPETA, "logs")
     os.makedirs(log_dir, exist_ok=True)
 
     root_logger = logging.getLogger()

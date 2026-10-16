@@ -2,7 +2,7 @@
 
 Procedencia: el mismo esquema que Guardias de patio (`src/utils/update_checker.py`)
 y Partes de salida (`partes_salida/actualizaciones.py`), adaptado a esta app:
-solo Windows y un instalador con nombre fijo.
+un instalador con nombre fijo para Windows y un DMG para macOS.
 
 Cómo funciona:
 1. Pregunta a la API (`/releases/latest`) y, si no responde (límite de 60
@@ -21,6 +21,7 @@ import json
 import logging
 import re
 import ssl
+import sys
 import urllib.error
 import urllib.request
 from collections.abc import Callable
@@ -35,9 +36,21 @@ RELEASES_WEB = f"https://github.com/{REPO}/releases/latest"
 DESCARGAS_WEB = f"https://github.com/{REPO}/releases/download"
 PAGINA_DE_RELEASES = RELEASES_WEB
 
-#: Nombre fijo del instalador (`installer_setup.iss`, OutputBaseFilename).
+#: Nombre fijo del instalador de Windows (`installer_setup.iss`, OutputBaseFilename)
+#: y del DMG de macOS (`.github/workflows/compilar.yml`, job macos).
 PLANTILLA_INSTALADOR = "Asistente_Documentacion_EPLA_{v}_Setup.exe"
+PLANTILLA_DMG = "Asistente_Documentacion_EPLA_{v}_macOS.dmg"
 _PATRON_INSTALADOR = re.compile(r"^Asistente_Documentacion_EPLA_[0-9][0-9A-Za-z.\-]*_Setup\.exe$", re.IGNORECASE)
+#: El sistema para el que se busca la actualización (las pruebas lo fijan).
+SISTEMA = sys.platform
+_PATRON_DMG = re.compile(r"^Asistente_Documentacion_EPLA_[0-9][0-9A-Za-z.\-]*_macOS\.dmg$", re.IGNORECASE)
+
+
+def _plantilla_y_patron(sistema: str | None = None):
+    """El DMG en macOS; en cualquier otro sistema, el instalador de Windows."""
+    if (sistema or SISTEMA) == "darwin":
+        return PLANTILLA_DMG, _PATRON_DMG
+    return PLANTILLA_INSTALADOR, _PATRON_INSTALADOR
 
 #: Solo se descarga de aquí. `urlopen` admite también `file:` y esquemas propios:
 #: una respuesta manipulada podría hacer que la app se bajara «la actualización»
@@ -78,22 +91,24 @@ def _abrir(url: str, timeout: float = 5):
     return respuesta
 
 
-def nombre_instalador(version: str) -> str:
-    return PLANTILLA_INSTALADOR.format(v=version)
+def nombre_instalador(version: str, sistema: str | None = None) -> str:
+    return _plantilla_y_patron(sistema)[0].format(v=version)
 
 
-def elegir_instalador(assets: list, version: str) -> str:
-    """URL del instalador de Windows entre los adjuntos del release.
+def elegir_instalador(assets: list, version: str, sistema: str | None = None) -> str:
+    """URL del instalador de este sistema entre los adjuntos del release.
 
     Primero el nombre exacto de esa versión; si no está, cualquier
-    `Asistente_Documentacion_EPLA_*_Setup.exe`. Nunca otra cosa (un `.zip`, el
-    código fuente) ni una URL que no sea de GitHub.
+    `Asistente_Documentacion_EPLA_*_Setup.exe` (o `*_macOS.dmg` en macOS). Nunca
+    otra cosa (un `.zip`, el código fuente, el de otro sistema) ni una URL que
+    no sea de GitHub.
     """
+    _, patron = _plantilla_y_patron(sistema)
     candidatos = [a for a in assets or [] if isinstance(a, dict)]
-    exacto = nombre_instalador(version).lower()
+    exacto = nombre_instalador(version, sistema).lower()
     for asset in sorted(candidatos, key=lambda a: a.get("name", "").lower() != exacto):
         nombre = asset.get("name", "")
-        if nombre.lower() == exacto or _PATRON_INSTALADOR.match(nombre):
+        if nombre.lower() == exacto or patron.match(nombre):
             url = asset.get("browser_download_url", "")
             if url_de_confianza(url):
                 return url
@@ -174,7 +189,7 @@ def comprobar(actual: str, avisar: Callable[[str, str, str], None], siempre: boo
 
 
 def abrir_instalador(ruta: str) -> None:
-    """Lanza el instalador descargado (Windows); en otros sistemas, lo abre."""
+    """Lanza el instalador descargado (Windows); en macOS, abre el DMG en el Finder."""
     import os
     import platform
     import subprocess

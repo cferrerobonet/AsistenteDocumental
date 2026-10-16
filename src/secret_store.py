@@ -1,6 +1,7 @@
 """
 Acceso a secretos para auto-login.
-Prioriza Windows Credential Manager y usa variables de entorno como fallback.
+Prioriza el almacén del sistema (Administrador de credenciales de Windows o
+llavero de macOS) y usa variables de entorno como fallback.
 """
 
 from __future__ import annotations
@@ -8,6 +9,9 @@ from __future__ import annotations
 import ctypes
 from ctypes import wintypes
 import os
+import re
+import subprocess  # nosec B404 - solo /usr/bin/security con argumentos fijos
+import sys
 from typing import Optional, Tuple
 
 try:
@@ -97,18 +101,61 @@ def get_windows_credential(target_name: str) -> Optional[Tuple[str, str]]:
         CredFree(cred_ptr)
 
 
+_SECURITY = "/usr/bin/security"
+
+
+def get_macos_credential(service: str) -> Optional[Tuple[str, str]]:
+    """
+    Leer una contraseña genérica del llavero de macOS (servicio *service*).
+
+    Se guarda una vez con
+    ``security add-generic-password -s EPLA_AUTLOGIN -a <usuario> -w``
+    (pide la contraseña sin que quede en el historial). La primera lectura,
+    macOS pregunta si se permite el acceso. Devuelve (username, password) o None.
+    """
+    if sys.platform != "darwin":
+        return None
+    try:
+        atributos = subprocess.run(  # nosec B603
+            [_SECURITY, "find-generic-password", "-s", service],
+            capture_output=True, text=True, timeout=10,
+        )
+        if atributos.returncode != 0:
+            return None
+        clave = subprocess.run(  # nosec B603
+            [_SECURITY, "find-generic-password", "-s", service, "-w"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if clave.returncode != 0:
+            return None
+    except (OSError, subprocess.SubprocessError):
+        return None
+    cuenta = re.search(r'"acct"<blob>="([^"]*)"', atributos.stdout)
+    username = cuenta.group(1) if cuenta else ""
+    password = clave.stdout.rstrip("\n")
+    if username and password:
+        return username, password
+    return None
+
+
 def load_auto_login_credentials() -> Optional[dict]:
     """
     Cargar credenciales para auto-login.
 
     Orden de prioridad:
-    1) Credential Manager: target EPLA_AUTLOGIN
+    1) Credential Manager (Windows) o llavero (macOS): EPLA_AUTLOGIN
     2) Variables de entorno EPLA_AUTLOGIN_USER / EPLA_AUTLOGIN_PASSWORD
     """
     cred = get_windows_credential("EPLA_AUTLOGIN")
     if cred:
         username, password = cred
         logger.info("Credenciales de auto-login cargadas desde Credential Manager")
+        return {"username": username.strip(), "password": password.strip()}
+
+    cred = get_macos_credential("EPLA_AUTLOGIN")
+    if cred:
+        username, password = cred
+        logger.info("Credenciales de auto-login cargadas desde el llavero de macOS")
         return {"username": username.strip(), "password": password.strip()}
 
     username = os.environ.get("EPLA_AUTLOGIN_USER", "").strip()

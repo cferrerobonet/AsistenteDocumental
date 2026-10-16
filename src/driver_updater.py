@@ -3,8 +3,8 @@ driver_updater.py — Gestión automática del msedgedriver
 =======================================================
 Responsabilidades:
   1. Detectar la versión de Microsoft Edge instalada.
-  2. Detectar la versión del msedgedriver disponible (en %APPDATA% o empaquetado).
-  3. Si son incompatibles, descargar el driver correcto a %APPDATA% y reiniciar.
+  2. Detectar la versión del msedgedriver disponible (en la carpeta de datos o empaquetado).
+  3. Si son incompatibles, descargar el driver correcto a la carpeta de datos y reiniciar.
   4. Exportar ``get_driver_path()`` como fuente única de verdad para el resto de
      la aplicación.
 
@@ -17,17 +17,23 @@ Flujo de actualización:
     │    │    └─ _bundled_driver_path()   (fallback)
     │    └─ _get_driver_version(path)
     ├─ si es compatible → return
-    └─ si no → DialogoDriver (src/ui) → descargar_driver() → %APPDATA% → reinicia
+    └─ si no → DialogoDriver (src/ui) → descargar_driver() → carpeta de datos → reinicia
+
+Sistemas: Windows x64 (msedgedriver.exe, edgedriver_win64.zip) y macOS
+(msedgedriver, edgedriver_mac64_m1.zip en Apple Silicon y edgedriver_mac64.zip en
+Intel). La carpeta de datos es %APPDATA%\\AsistenteEPLA en Windows y
+~/Library/Application Support/AsistenteEPLA en macOS (`src.rutas`).
 
 Logging:
   Todas las operaciones se registran en
-  %APPDATA%/AsistenteEPLA/logs/driver_updater.log
+  <carpeta de datos>/logs/driver_updater.log
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import platform
 import re
 import shutil
 import subprocess
@@ -38,18 +44,43 @@ import urllib.error
 import urllib.request
 import zipfile
 
+try:
+    from src.rutas import CARPETA, base_del_sistema
+except ImportError:
+    from rutas import CARPETA, base_del_sistema
+
+try:
+    from src.actualizaciones import contexto_ssl
+except ImportError:
+    from actualizaciones import contexto_ssl
+
 # ---------------------------------------------------------------------------
 # Constantes
 # ---------------------------------------------------------------------------
-_APP_FOLDER = "AsistenteEPLA"
+_APP_FOLDER = CARPETA
 _DRIVER_SUBFOLDER = "drivers"
 _LOG_SUBFOLDER = "logs"
-_DRIVER_EXE = "msedgedriver.exe"
-_MS_BLOB_BASE = "https://msedgewebdriverstorage.blob.core.windows.net/edgewebdriver"
+_ES_WINDOWS = sys.platform == "win32"
+_DRIVER_EXE = "msedgedriver.exe" if _ES_WINDOWS else "msedgedriver"
+# Desde 2025 Microsoft sirve el driver aquí; el almacén antiguo
+# (msedgewebdriverstorage.blob.core.windows.net) responde 409 «PublicAccessNotPermitted».
+_MS_DRIVER_BASE = "https://msedgedriver.microsoft.com"
+
+#: Dónde instala Edge cada sistema (la primera que exista).
+RUTAS_EDGE = {
+    "win32": (
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    ),
+    "darwin": (
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        os.path.expanduser("~/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"),
+    ),
+}
 _RESTART_SENTINEL = ".driver_update_pending"  # evitar bucles infinitos de reinicio
 
 # ---------------------------------------------------------------------------
-# Logging (a fichero en %APPDATA%)
+# Logging (a fichero en la carpeta de datos)
 # ---------------------------------------------------------------------------
 _logger = logging.getLogger("driver_updater")
 _logger.setLevel(logging.DEBUG)
@@ -59,8 +90,7 @@ def _setup_logging() -> None:
     """Configura el logger la primera vez que se importa el módulo."""
     if _logger.handlers:
         return
-    appdata = os.environ.get("APPDATA", os.path.expanduser("~"))
-    log_dir = os.path.join(appdata, _APP_FOLDER, _LOG_SUBFOLDER)
+    log_dir = os.path.join(base_del_sistema(), _APP_FOLDER, _LOG_SUBFOLDER)
     os.makedirs(log_dir, exist_ok=True)
     log_file = os.path.join(log_dir, "driver_updater.log")
     handler = logging.FileHandler(log_file, encoding="utf-8", delay=False)
@@ -85,17 +115,31 @@ _setup_logging()
 # Rutas
 # ---------------------------------------------------------------------------
 
+def paquete_driver(sistema: str | None = None, maquina: str | None = None) -> str:
+    """Nombre del zip de Microsoft con el driver de este sistema."""
+    sistema = sistema or sys.platform
+    if sistema == "win32":
+        return "edgedriver_win64.zip"
+    if sistema == "darwin":
+        maquina = maquina or platform.machine()
+        return "edgedriver_mac64_m1.zip" if maquina == "arm64" else "edgedriver_mac64.zip"
+    return "edgedriver_linux64.zip"
+
+
 def _appdata_driver_path() -> str:
-    """Ruta del driver actualizable en %APPDATA% (siempre escribible sin admin)."""
-    appdata = os.environ.get("APPDATA", os.path.expanduser("~"))
-    return os.path.join(appdata, _APP_FOLDER, _DRIVER_SUBFOLDER, _DRIVER_EXE)
+    """Ruta del driver actualizable en la carpeta de datos (siempre escribible sin admin)."""
+    return os.path.join(base_del_sistema(), _APP_FOLDER, _DRIVER_SUBFOLDER, _DRIVER_EXE)
 
 
 def _bundled_driver_path() -> str:
-    """Ruta del driver empaquetado junto con el .exe (puede estar en Program Files)."""
+    """Ruta del driver empaquetado con la app (Program Files o dentro del .app).
+
+    `sys._MEIPASS` es `_internal` junto al .exe en Windows y
+    `Contents/Frameworks` en el .app de macOS (los datos se enlazan desde ahí).
+    """
     if getattr(sys, "frozen", False):
-        base = os.path.dirname(sys.executable)
-        return os.path.join(base, "_internal", "drivers", _DRIVER_EXE)
+        base = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+        return os.path.join(base, "drivers", _DRIVER_EXE)
     else:
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         return os.path.join(base, "drivers", _DRIVER_EXE)
@@ -106,7 +150,7 @@ def get_driver_path() -> str | None:
     Devuelve la ruta al msedgedriver activo o ``None`` si no existe ninguno.
 
     **Prioridad:**
-    1. ``%APPDATA%/AsistenteEPLA/drivers/msedgedriver.exe``  (actualizado)
+    1. ``<carpeta de datos>/drivers/msedgedriver[.exe]``      (actualizado)
     2. Driver empaquetado junto a la instalación               (puede estar desactualizado)
 
     Esta función es la **fuente única de verdad** para el resto de la app.
@@ -127,8 +171,7 @@ def get_driver_path() -> str | None:
 
 def _sentinel_path() -> str:
     """Ruta del fichero centinela que evita bucles de reinicio infinitos."""
-    appdata = os.environ.get("APPDATA", os.path.expanduser("~"))
-    return os.path.join(appdata, _APP_FOLDER, _RESTART_SENTINEL)
+    return os.path.join(base_del_sistema(), _APP_FOLDER, _RESTART_SENTINEL)
 
 
 # ---------------------------------------------------------------------------
@@ -139,8 +182,23 @@ def get_edge_version() -> str | None:
     """
     Devuelve la versión de Microsoft Edge instalada (ej. ``'145.0.3800.70'``).
 
-    Intenta primero el Registro de Windows y luego el ejecutable.
+    En Windows, primero el Registro y luego el ejecutable; en macOS,
+    ``Microsoft Edge --version`` del .app.
     """
+    if sys.platform == "darwin":
+        for path in RUTAS_EDGE["darwin"]:
+            if os.path.isfile(path):
+                try:
+                    r = subprocess.run([path, "--version"], capture_output=True, text=True, timeout=15)
+                    m = re.search(r"(\d+\.\d+\.\d+\.\d+)", r.stdout)
+                    if m:
+                        _logger.info("Edge version (app): %s", m.group(1))
+                        return m.group(1)
+                except Exception as exc:
+                    _logger.debug("Error leyendo la versión de Edge: %s", exc)
+        _logger.warning("No se pudo detectar la versión de Edge")
+        return None
+
     # 1. Registro de Windows (más rápido y fiable)
     try:
         import winreg
@@ -164,10 +222,7 @@ def get_edge_version() -> str | None:
         pass
 
     # 2. Ejecutable de Edge
-    for path in (
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    ):
+    for path in RUTAS_EDGE["win32"]:
         if os.path.isfile(path):
             try:
                 r = subprocess.run(
@@ -188,7 +243,7 @@ def get_edge_version() -> str | None:
 
 
 def _get_driver_version(driver_path: str) -> str | None:
-    """Devuelve la versión de msedgedriver.exe (ej. ``'145.0.3800.70'``)."""
+    """Devuelve la versión de msedgedriver (ej. ``'145.0.3800.70'``)."""
     if not os.path.isfile(driver_path):
         return None
     try:
@@ -220,18 +275,35 @@ def _major(version: str | None) -> int:
 # Consulta de versión remota
 # ---------------------------------------------------------------------------
 
-def _fetch_latest_driver_version(edge_major: int) -> str | None:
-    """Pregunta a Microsoft cuál es la última versión del driver para *edge_major*."""
-    url = f"{_MS_BLOB_BASE}/LATEST_RELEASE_{edge_major}"
+def decodificar_version(datos: bytes) -> str:
+    """Texto de ``LATEST_*``: Microsoft lo sirve en UTF-16 con BOM y salto de línea."""
+    if datos[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        texto = datos.decode("utf-16")
+    else:
+        texto = datos.decode("utf-8-sig", errors="replace")
+    return texto.strip().strip("\x00").strip()
+
+
+def version_remota(nombre: str) -> str | None:
+    """``LATEST_STABLE`` o ``LATEST_RELEASE_<mayor>``: la versión que publica Microsoft."""
+    url = f"{_MS_DRIVER_BASE}/{nombre}"
     _logger.info("Consultando versión remota: %s", url)
     try:
-        with urllib.request.urlopen(url, timeout=15) as resp:
-            ver = resp.read().decode("utf-8").strip()
+        # Con los certificados de certifi: el Python empaquetado en macOS no ve los del sistema.
+        with urllib.request.urlopen(url, timeout=15, context=contexto_ssl()) as resp:  # nosec B310 - URL fija de Microsoft
+            ver = decodificar_version(resp.read())
+        if re.fullmatch(r"\d+\.\d+\.\d+\.\d+", ver):
             _logger.info("Versión remota disponible: %s", ver)
             return ver
+        _logger.error("Respuesta inesperada de %s: %r", url, ver[:40])
     except Exception as exc:
         _logger.error("Error consultando versión remota: %s", exc)
     return None
+
+
+def _fetch_latest_driver_version(edge_major: int) -> str | None:
+    """Pregunta a Microsoft cuál es la última versión del driver para *edge_major*."""
+    return version_remota(f"LATEST_RELEASE_{edge_major}")
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +358,7 @@ def _check_driver() -> dict:
 
 def descargar_driver(edge_ver: str, estado=None, progreso=None) -> str:
     """
-    Descarga el msedgedriver compatible con *edge_ver* y lo instala en %APPDATA%.
+    Descarga el msedgedriver compatible con *edge_ver* y lo instala en la carpeta de datos.
 
     ``estado(texto)`` y ``progreso(porcentaje, velocidad_kb)`` cuentan el avance
     (se llaman desde el hilo de descarga). Devuelve la ruta instalada; lanza la
@@ -305,7 +377,7 @@ def descargar_driver(edge_ver: str, estado=None, progreso=None) -> str:
     progreso(10, None)
 
     # 2. Descarga
-    url = f"{_MS_BLOB_BASE}/{target}/edgedriver_win64.zip"
+    url = f"{_MS_DRIVER_BASE}/{target}/{paquete_driver()}"
     _logger.info("Descargando %s", url)
     estado(f"Descargando msedgedriver {target}…")
     tmp_zip = os.path.join(tempfile.gettempdir(), f"edgedriver_{target}.zip")
@@ -313,15 +385,16 @@ def descargar_driver(edge_ver: str, estado=None, progreso=None) -> str:
     downloaded = 0
     t0 = time.time()
 
-    def hook(block, block_sz, total):
-        nonlocal downloaded
-        downloaded = min(block * block_sz, total if total > 0 else block * block_sz)
-        elapsed = max(time.time() - t0, 0.001)
-        speed = downloaded / elapsed / 1024
-        pct = 10 + (downloaded / total * 70) if total > 0 else 10
-        progreso(pct, speed)
-
-    urllib.request.urlretrieve(url, tmp_zip, reporthook=hook)
+    with urllib.request.urlopen(url, timeout=60, context=contexto_ssl()) as resp, \
+            open(tmp_zip, "wb") as destino:  # nosec B310 - URL fija de Microsoft
+        total = int(resp.headers.get("Content-Length") or 0)
+        while trozo := resp.read(64 * 1024):
+            destino.write(trozo)
+            downloaded += len(trozo)
+            elapsed = max(time.time() - t0, 0.001)
+            speed = downloaded / elapsed / 1024
+            pct = 10 + (downloaded / total * 70) if total > 0 else 10
+            progreso(pct, speed)
 
     # 3. Extraer
     progreso(82, None)
@@ -333,7 +406,7 @@ def descargar_driver(edge_ver: str, estado=None, progreso=None) -> str:
         zf.extractall(tmp_dir)
     progreso(90, None)
 
-    # 4. Instalar en %APPDATA%
+    # 4. Instalar en la carpeta de datos
     estado("Instalando driver…")
     src_exe = os.path.join(tmp_dir, _DRIVER_EXE)
     if not os.path.isfile(src_exe):
@@ -353,6 +426,8 @@ def descargar_driver(edge_ver: str, estado=None, progreso=None) -> str:
             pass
 
     shutil.copy2(src_exe, dst)
+    if not _ES_WINDOWS:
+        os.chmod(dst, 0o755)  # el zip no conserva el permiso de ejecución
     _logger.info("Driver instalado en %s", dst)
 
     # Verificar que funciona
@@ -403,7 +478,7 @@ def check_and_update_driver() -> None:
     Llamar **antes** de crear la ventana principal (desde ``main.py``).
 
     - Si el driver es compatible → no hace nada.
-    - Si es incompatible → diálogo de descarga → instala en %APPDATA% → reinicia.
+    - Si es incompatible → diálogo de descarga → instala en la carpeta de datos → reinicia.
     - Si la descarga falla → no bloquea; Selenium Manager intentará resolverlo.
     """
     _logger.info("=" * 60)

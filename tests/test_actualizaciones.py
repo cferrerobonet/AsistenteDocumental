@@ -11,7 +11,14 @@ from src import __version__
 from src import actualizaciones as act
 
 NOMBRE = "Asistente_Documentacion_EPLA_{v}_Setup.exe"
+DMG = "Asistente_Documentacion_EPLA_{v}_macOS.dmg"
 BASE = "https://github.com/cferrerobonet/AsistenteDocumental/releases/download"
+
+
+@pytest.fixture(autouse=True)
+def en_windows(monkeypatch):
+    """Las pruebas del instalador son las de Windows salvo que digan otra cosa (la CI corre también en macOS)."""
+    monkeypatch.setattr(act, "SISTEMA", "win32")
 
 
 class Respuesta(io.BytesIO):
@@ -107,6 +114,14 @@ def test_sin_el_exacto_vale_otro_instalador_de_la_app_pero_nada_mas():
     assert act.elegir_instalador([_asset("Portable.zip"), _asset("otro_Setup.exe")], "4.1.0") == ""
     assert act.elegir_instalador([], "4.1.0") == ""
     assert act.elegir_instalador(None, "4.1.0") == ""
+
+
+def test_en_macos_elige_el_dmg_y_nunca_el_exe(monkeypatch):
+    monkeypatch.setattr(act, "SISTEMA", "darwin")
+    assets = [_asset(NOMBRE.format(v="4.1.0")), _asset(DMG.format(v="4.1.0")), _asset("Source code.zip")]
+    assert act.elegir_instalador(assets, "4.1.0").endswith(DMG.format(v="4.1.0"))
+    assert act.elegir_instalador([_asset(NOMBRE.format(v="4.1.0"))], "4.1.0") == ""
+    assert act.nombre_instalador("4.1.0") == DMG.format(v="4.1.0")
 
 
 def test_no_elige_un_instalador_alojado_fuera_de_github():

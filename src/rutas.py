@@ -13,8 +13,22 @@ from pathlib import Path
 CARPETA = "AsistenteEPLA"
 
 
+def base_del_sistema() -> Path:
+    """Donde guarda cada sistema los datos de las aplicaciones.
+
+    Windows: %APPDATA%; macOS: ~/Library/Application Support; en otro sistema, la
+    carpeta personal. Si `APPDATA` está definida, manda (las pruebas la cambian).
+    """
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        return Path(appdata)
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support"
+    return Path.home()
+
+
 def carpeta_datos() -> Path:
-    """Carpeta de datos del usuario (%APPDATA%\\AsistenteEPLA).
+    """Carpeta de datos del usuario (%APPDATA%\\AsistenteEPLA en Windows).
 
     `ASISTENTE_DATOS` la cambia (pruebas).
     """
@@ -22,7 +36,7 @@ def carpeta_datos() -> Path:
     if propia:
         base = Path(propia)
     else:
-        base = Path(os.environ.get("APPDATA") or Path.home()) / CARPETA
+        base = base_del_sistema() / CARPETA
     base.mkdir(parents=True, exist_ok=True)
     return base
 
