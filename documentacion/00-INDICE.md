@@ -47,12 +47,9 @@ Bienvenido a la documentación completa del Asistente de Documentación EPLA. Lo
    - Soluciones paso a paso
    - Preguntas frecuentes (FAQ)
 
-## 🔎 Auditoría y Mejora Continua
+## 🔎 Auditoría
 
-8. **[07-AUDITORIA-CALIDAD-2026-05.md](07-AUDITORIA-CALIDAD-2026-05.md)**
-   - Hallazgos priorizados (seguridad, calidad, UX/UI, logs)
-   - Riesgos e impacto
-   - Plan de mejora por fases
+Auditoría: skill de usuario `auditoria-apps`; hallazgos en la bóveda, `ASISTENTE DOCUMENTAL — Auditoría.md` (fuera del repositorio).
 
 ---
 
@@ -66,8 +63,7 @@ documentacion/
 ├── 03-AUTENTICACION-SIMPLE.md      ← Autenticación (navegador + sesión)
 ├── 04-RESUMEN-TECNICO.md           ← Info técnica
 ├── 05-SOLUCION-PROBLEMAS.md        ← Errores y soluciones
-├── 06-WORKFLOW-POSTCAMBIOS.md      ← Flujo de cierre de cambios
-└── 07-AUDITORIA-CALIDAD-2026-05.md ← Auditoría de calidad
+└── 06-WORKFLOW-POSTCAMBIOS.md      ← Flujo de cierre de cambios
 ```
 
 ---
@@ -82,7 +78,7 @@ documentacion/
 | Resolver un error | [05-SOLUCION-PROBLEMAS.md](05-SOLUCION-PROBLEMAS.md) |
 | Entender cómo funciona | [04-RESUMEN-TECNICO.md](04-RESUMEN-TECNICO.md) |
 | Seguir el cierre postcambios | [06-WORKFLOW-POSTCAMBIOS.md](06-WORKFLOW-POSTCAMBIOS.md) |
-| Revisar deuda y mejoras | [07-AUDITORIA-CALIDAD-2026-05.md](07-AUDITORIA-CALIDAD-2026-05.md) |
+| Revisar deuda y mejoras | Registro de la bóveda `ASISTENTE DOCUMENTAL — Auditoría.md` |
 | Tutorial paso a paso | [01-INICIO_RAPIDO.md](01-INICIO_RAPIDO.md) |
 | Saber qué cambia en cada versión | [CHANGELOG.md](../CHANGELOG.md) |
 

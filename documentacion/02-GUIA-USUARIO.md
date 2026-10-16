@@ -62,7 +62,6 @@ $env:QT_QPA_PLATFORM="offscreen"; python -m pytest
 ## Referencias
 - `documentacion/01-INICIO_RAPIDO.md`
 - `documentacion/05-SOLUCION-PROBLEMAS.md`
-- `documentacion/07-AUDITORIA-CALIDAD-2026-05.md`
 
 ---
 
