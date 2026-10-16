@@ -69,3 +69,9 @@ installer_output/
 *.xls
 *.csv
 !ejemplo_estudiantes.xlsx
+
+# Copias y datos (bloque común)
+*.sql
+*.zip
+*.db
+COPIAS DE SEGURIDAD/
