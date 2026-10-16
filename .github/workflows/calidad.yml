@@ -1,7 +1,7 @@
 # Calidad en cada push, en Linux y en un par de minutos (el instalador lo sigue haciendo compilar.yml, con etiqueta).
 #   1. ruff con las reglas de errores graves (sintaxis, nombres sin definir), igual que el QA local.
 #   2. pytest sin pantalla con lo que las pruebas importan y no es de Windows: PyQt6, pytest-qt, requests,
-#      pandas, openpyxl y selenium, con las versiones fijadas en requirements*.txt (pywin32, pythonnet, WMI,
+#      pandas, openpyxl y selenium, con las versiones fijadas en requirements*.txt (pythonnet,
 #      pywebview y PyInstaller se quedan fuera: solo hacen falta en el exe).
 name: Calidad
 
