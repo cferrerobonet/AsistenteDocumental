@@ -62,17 +62,6 @@ Garantizar trazabilidad, versionado consistente y documentación mínima en cada
 
 Este workflow se considera estándar del proyecto y debe seguirse en cada entrega para evitar cambios sin traza o versiones inconsistentes.
 
-## Skills recomendadas para automatizar el flujo
+## Reglas del repositorio
 
-- `postcambios-cierre`: ejecuta y verifica el cierre completo (commit, push, bump de version y documentacion).
-- `python-quality-gate`: valida calidad minima y regresiones antes del cierre.
-
-Ubicacion de skills del proyecto:
-
-- `.github/skills/postcambios-cierre/SKILL.md`
-- `.github/skills/python-quality-gate/SKILL.md`
-
-Uso recomendado:
-
-1. Ejecutar quality gate (`/python-quality-gate`) durante o al final del desarrollo.
-2. Ejecutar cierre (`/postcambios-cierre`) para finalizar entrega de forma estandarizada.
+Las órdenes de QA, la compilación (siempre en GitHub, para Windows y macOS) y las reglas de datos están en `AGENTS.md`, en la raíz del repositorio.
