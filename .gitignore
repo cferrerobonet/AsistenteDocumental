@@ -50,7 +50,9 @@ desktop.ini
 # ──────────────────────────────────────────────
 installer_output/
 *.exe
-!drivers/msedgedriver.exe
+*.dmg
+# El driver de Edge no se versiona: compilar.yml lo baja con scripts/descargar_driver.py.
+drivers/
 
 # ──────────────────────────────────────────────
 # Archivos temporales y de caché

@@ -4,6 +4,9 @@
 #     y lo adjunta al release de esa etiqueta (lo crea si no existe).
 #   • A mano, desde la pestaña Actions: lo mismo, pero deja el instalador como
 #     artefacto de la ejecución y no publica nada.
+#
+# El msedgedriver no se versiona: scripts/descargar_driver.py baja el estable y va
+# dentro del instalador, para que la app arranque sin red.
 name: Compilar
 
 on:
@@ -17,6 +20,8 @@ permissions:
 env:
   PYTHON_VERSION: "3.13"
   EXE: dist/Asistente_Documentacion_EPLA/Asistente_Documentacion_EPLA.exe
+  # Sin __pycache__ dentro de src/: PyInstaller copia esa carpeta tal cual.
+  PYTHONDONTWRITEBYTECODE: "1"
 
 jobs:
   windows:
@@ -40,8 +45,6 @@ jobs:
       # actualizador, novedades y el arranque completo en modo prueba.
       - name: Pruebas
         env:
-          # Sin __pycache__ dentro de src/: PyInstaller copia esa carpeta tal cual.
-          PYTHONDONTWRITEBYTECODE: "1"
           PYTHONPATH: ${{ github.workspace }}
           QT_QPA_PLATFORM: offscreen
         run: python -m pytest -v
@@ -57,6 +60,9 @@ jobs:
           fi
           echo "Versión: $v"
           echo "numero=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Bajar el msedgedriver de Windows
+        run: python scripts/descargar_driver.py
 
       - name: Compilar el exe con PyInstaller
         run: pyinstaller Asistente_Documentacion_EPLA.spec --noconfirm --clean
@@ -90,7 +96,8 @@ jobs:
             (Join-Path $int "src\recursos\fuentes\Barlow-Regular.ttf"),
             (Join-Path $int "src\recursos\fuentes\BarlowCondensed-ExtraBold.ttf"),
             (Join-Path $int "src\recursos\escudo.png"),
-            (Join-Path $int "src\recursos\novedades.md")
+            (Join-Path $int "src\recursos\novedades.md"),
+            (Join-Path $int "drivers\msedgedriver.exe")
           )
           $faltan = @($necesarios | Where-Object { -not (Test-Path $_) })
           if (-not (Get-ChildItem $int -Recurse -File -Filter "qwindows.dll")) { $faltan += "plugin qwindows.dll" }
@@ -101,6 +108,10 @@ jobs:
             $faltan | ForEach-Object { Write-Host "  $_" }
             exit 1
           }
+          # El driver empaquetado tiene que funcionar: es el que se usa sin red.
+          $driver = & (Join-Path $int "drivers\msedgedriver.exe") --version
+          if ($LASTEXITCODE -ne 0 -or $driver -notmatch "\d+\.\d+\.\d+\.\d+") { Write-Host "[ERROR] El driver empaquetado no responde: $driver"; exit 1 }
+          Write-Host "[OK] $driver"
           Write-Host "[OK] Exe: $([math]::Round((Get-Item $env:EXE).Length / 1MB, 1)) MB; carpeta: $([math]::Round(((Get-ChildItem dist -Recurse -File | Measure-Object Length -Sum).Sum) / 1MB, 1)) MB"
 
       # Que el exe exista no basta: se arranca en modo prueba (sin comprobar el
