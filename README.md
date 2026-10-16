@@ -161,6 +161,7 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 ├── Asistente_Documentacion_EPLA.spec  # Configuración PyInstaller
 ├── installer_setup.iss              # Script Inno Setup (instalador Windows)
 ├── .github/workflows/compilar.yml   # Compila el exe y el instalador en GitHub
+├── .github/workflows/calidad.yml    # ruff y pytest en Linux en cada push
 ├── config/
 │   └── app_config.py               # Configuración de la aplicación
 ├── src/
@@ -221,6 +222,8 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 ## 🏗️ Publicar una versión
 
 **No se compila nunca en local** (ni `pyinstaller` ni Inno Setup): el instalador lo genera GitHub Actions con `.github/workflows/compilar.yml` en un Windows x64 limpio.
+
+En cada push, el flujo **Calidad** (`.github/workflows/calidad.yml`) pasa `ruff` y `pytest` en Linux, sin las dependencias de Windows; antes de etiquetar, tiene que estar en verde.
 
 1. Sube la versión en `src/__init__.py` (`__version__`), en el valor por defecto de `installer_setup.iss` y en «Versión actual» de este README; añade su entrada en `CHANGELOG.md` y sus novedades en `src/recursos/novedades.md` (un test comprueba que todo coincide).
 2. Commit y `git push` de los cambios a `main`.
