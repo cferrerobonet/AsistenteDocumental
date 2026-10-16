@@ -1,12 +1,14 @@
-# Compila el instalador de Windows en GitHub, sin PC con Windows. No se compila nunca en local.
+# Compila siempre en GitHub, para Windows y para macOS. No se compila nunca en local.
 #
-#   • Al publicar una etiqueta vX.Y.Z: pruebas, exe, prueba de arranque, instalador
-#     y lo adjunta al release de esa etiqueta (lo crea si no existe).
-#   • A mano, desde la pestaña Actions: lo mismo, pero deja el instalador como
-#     artefacto de la ejecución y no publica nada.
+#   • Al publicar una etiqueta vX.Y.Z: en cada sistema, pruebas, driver de Edge,
+#     PyInstaller, comprobación de que no lleva datos y prueba de arranque; luego el
+#     instalador de Windows (Inno Setup) y el DMG de macOS se adjuntan al release
+#     de esa etiqueta (lo crea si no existe).
+#   • A mano, desde la pestaña Actions: lo mismo, pero deja el instalador y el DMG
+#     como artefactos de la ejecución y no publica nada.
 #
-# El msedgedriver no se versiona: scripts/descargar_driver.py baja el estable y va
-# dentro del instalador, para que la app arranque sin red.
+# El msedgedriver no se versiona: scripts/descargar_driver.py baja el estable de cada
+# sistema y va dentro del instalador y del .app, para que la app arranque sin red.
 name: Compilar
 
 on:
@@ -20,6 +22,7 @@ permissions:
 env:
   PYTHON_VERSION: "3.13"
   EXE: dist/Asistente_Documentacion_EPLA/Asistente_Documentacion_EPLA.exe
+  APP: dist/Asistente_Documentacion_EPLA.app
   # Sin __pycache__ dentro de src/: PyInstaller copia esa carpeta tal cual.
   PYTHONDONTWRITEBYTECODE: "1"
 
@@ -159,20 +162,144 @@ jobs:
           path: installer_output/*.exe
           if-no-files-found: error
 
+  macos:
+    name: DMG de macOS (Apple Silicon)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Pruebas
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -v
+
+      - name: Versión
+        id: version
+        run: |
+          v=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/__init__.py | head -1)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "v$v" != "${GITHUB_REF_NAME}" ]; then
+            echo "[ERROR] src/__init__.py dice $v y la etiqueta ${GITHUB_REF_NAME}"; exit 1
+          fi
+          echo "Versión: $v"
+          echo "numero=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Bajar el msedgedriver de macOS
+        run: python scripts/descargar_driver.py
+
+      - name: Compilar el .app con PyInstaller
+        run: pyinstaller Asistente_Documentacion_EPLA.spec --noconfirm --clean
+
+      # La misma regla que en Windows: lo propio de la app (archivos sueltos de
+      # MacOS, Frameworks y Resources, y las carpetas que copia el spec) solo puede
+      # llevar código, imágenes y el driver; en todo el .app, ni .env ni la
+      # configuración de otras variantes.
+      - name: Comprobar que el .app existe y no lleva datos
+        run: |
+          set -euo pipefail
+          C="$APP/Contents"
+          [ -x "$C/MacOS/Asistente_Documentacion_EPLA" ] || { echo "[ERROR] No existe $C/MacOS/Asistente_Documentacion_EPLA"; exit 1; }
+          propios=$( { find "$C/MacOS" "$C/Frameworks" "$C/Resources" -maxdepth 1 -type f
+                       for d in config src imagenes drivers; do find -L "$C/Frameworks/$d" "$C/Resources/$d" -type f 2>/dev/null || true; done; } | sort -u)
+          # La licencia OFL de las tipografías Barlow (src/recursos/fuentes) sí viaja con ellas.
+          prohibidos=$(printf '%s\n' "$propios" | grep -Ei '\.(xlsx|xls|csv|db|sqlite|log|json|txt|pdf)$' | grep -Ev '/fuentes/OFL-[^/]*\.txt$' || true)
+          prohibidos="$prohibidos$(find "$C" \( -name '.env*' -o -name 'app_config-*' \) -print)"
+          if [ -n "$prohibidos" ]; then echo "[ERROR] El .app empaqueta ficheros que no debe:"; echo "$prohibidos"; exit 1; fi
+          # Lo que la interfaz necesita para verse bien y el driver de Edge, en la ruta
+          # que usa la app (sys._MEIPASS = Contents/Frameworks).
+          faltan=""
+          for f in src/recursos/fuentes/Barlow-Regular.ttf src/recursos/fuentes/BarlowCondensed-ExtraBold.ttf \
+                   src/recursos/escudo.png src/recursos/novedades.md drivers/msedgedriver; do
+            [ -e "$C/Frameworks/$f" ] || faltan="$faltan $f"
+          done
+          [ -n "$(find "$C" -name libqcocoa.dylib -print -quit)" ] || faltan="$faltan plugin libqcocoa.dylib"
+          [ -n "$(find "$C" -name qtbase_es.qm -print -quit)" ] || faltan="$faltan traducción qtbase_es.qm"
+          if [ -n "$faltan" ]; then echo "[ERROR] Faltan en el .app:$faltan"; exit 1; fi
+          [ -z "$(find "$C" -type d -name tkinter -print -quit)" ] || echo "[AVISO] Se ha colado tkinter en el .app"
+          # El driver empaquetado tiene que funcionar: es el que se usa sin red.
+          driver=$("$C/Frameworks/drivers/msedgedriver" --version)
+          echo "$driver" | grep -Eq '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' || { echo "[ERROR] El driver empaquetado no responde: $driver"; exit 1; }
+          echo "[OK] $driver"
+          echo "[OK] .app: $(du -sh "$APP" | cut -f1)"
+
+      # Que el .app exista no basta: se arranca en modo prueba (sin comprobar el
+      # driver de Edge), tiene que llegar a la ventana principal y salir limpio.
+      - name: Arrancar el .app hasta la ventana principal
+        run: |
+          set +e
+          LOG="$HOME/Library/Application Support/AsistenteEPLA/logs/app.log"
+          MARCA="PRUEBA DE ARRANQUE: ventana principal a la vista"
+          # Sin `timeout` en macOS: perl corta a los 120 s.
+          ASISTENTE_PRUEBA_DE_ARRANQUE=1 QT_QPA_PLATFORM=offscreen \
+            perl -e 'alarm 120; exec { $ARGV[0] } @ARGV' "$APP/Contents/MacOS/Asistente_Documentacion_EPLA"
+          codigo=$?
+          if [ -f "$LOG" ]; then
+            echo "=== app.log (últimas 60 líneas) ==="; tail -n 60 "$LOG"
+          else
+            echo "[ERROR] No se ha creado $LOG: el .app no llegó a ejecutar Python"
+          fi
+          if [ "$codigo" -eq 0 ] && grep -qF "$MARCA" "$LOG" 2>/dev/null; then echo "[OK] $MARCA y salida limpia"; exit 0; fi
+          echo "[ERROR] El .app no llegó a la ventana principal (código=$codigo)"
+          exit 1
+
+      - name: Generar el DMG
+        run: |
+          set -euo pipefail
+          v="${{ steps.version.outputs.numero }}"
+          DMG="Asistente_Documentacion_EPLA_${v}_macOS.dmg"
+          mkdir -p dmg
+          cp -R "$APP" dmg/
+          ln -s /Applications dmg/Applications
+          # hdiutil falla a veces en los ejecutores con «Resource busy»: hasta tres intentos.
+          for intento in 1 2 3; do
+            hdiutil create -volname "Asistente de Documentación EPLA" -srcfolder dmg -ov -format UDZO "$DMG" && break
+            [ "$intento" -lt 3 ] || exit 1
+            sleep 10
+          done
+          echo "[OK] $DMG: $(du -h "$DMG" | cut -f1)"
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: Asistente_Documentacion_EPLA-macOS
+          path: "*.dmg"
+          if-no-files-found: error
+
+  publicar:
+    name: Adjuntar al release
+    needs: [windows, macos]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: instaladores
+
       - name: Adjuntar al release
-        if: github.ref_type == 'tag'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           etiqueta="${GITHUB_REF_NAME}"
+          archivos=$(find instaladores -type f \( -name '*.exe' -o -name '*.dmg' \))
+          echo "$archivos"
           # Una etiqueta con guion (v3.4.0-beta) se publica como versión previa.
           previa=""
           case "$etiqueta" in *-*) previa="--prerelease" ;; esac
           if gh release view "$etiqueta" >/dev/null 2>&1; then
-            gh release upload "$etiqueta" installer_output/*.exe --clobber
+            gh release upload "$etiqueta" $archivos --clobber
           else
-            gh release create "$etiqueta" installer_output/*.exe \
+            gh release create "$etiqueta" $archivos \
               --title "Asistente de Documentación EPLA ${etiqueta#v}" --generate-notes $previa
           fi

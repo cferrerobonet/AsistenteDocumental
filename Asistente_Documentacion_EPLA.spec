@@ -1,8 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
-# Se compila solo en GitHub (.github/workflows/compilar.yml), nunca en local.
+# Se compila solo en GitHub (.github/workflows/compilar.yml), nunca en local:
+# en Windows (carpeta con el .exe, que empaqueta Inno Setup) y en macOS (.app en un DMG).
 # Interfaz en PyQt6 (desde la 4.0.0): el gancho de PyInstaller para PyQt6 copia
 # Qt, los plugins de plataforma y estilos y las traducciones (qtbase_es).
+# drivers/ no se versiona: compilar.yml baja antes el msedgedriver del sistema
+# (scripts/descargar_driver.py) y viaja dentro para arrancar sin red.
+import os
+import re
+import sys
+
 from PyInstaller.utils.hooks import collect_submodules
+
+ES_MAC = sys.platform == 'darwin'
+with open(os.path.join('src', '__init__.py'), encoding='utf-8') as f:
+    VERSION = re.search(r'__version__ = "([^"]+)"', f.read()).group(1)
 
 hiddenimports = [
     'src', 'src.rutas', 'src.actualizaciones', 'src.novedades',
@@ -14,8 +25,9 @@ hiddenimports = [
     'config.app_config',
     'PyQt6.QtCore', 'PyQt6.QtGui', 'PyQt6.QtWidgets',
     'certifi',
-    'winreg',
 ]
+if not ES_MAC:
+    hiddenimports.append('winreg')
 hiddenimports += collect_submodules('selenium')
 hiddenimports += collect_submodules('openpyxl')
 
@@ -56,7 +68,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['imagenes\\logo.ico'],
+    icon=[os.path.join('imagenes', 'logo.ico')],
 )
 coll = COLLECT(
     exe,
@@ -67,3 +79,19 @@ coll = COLLECT(
     upx_exclude=[],
     name='Asistente_Documentacion_EPLA',
 )
+
+if ES_MAC:
+    # Apple Silicon (macos-latest); sin firma de Apple: firma ad hoc de PyInstaller.
+    app = BUNDLE(
+        coll,
+        name='Asistente_Documentacion_EPLA.app',
+        icon=os.path.join('imagenes', 'logo.ico'),
+        bundle_identifier='es.epla.asistente-documental',
+        version=VERSION,
+        info_plist={
+            'CFBundleDisplayName': 'Asistente de Documentación EPLA',
+            'CFBundleShortVersionString': VERSION,
+            'NSHighResolutionCapable': True,
+            'LSApplicationCategoryType': 'public.app-category.productivity',
+        },
+    )

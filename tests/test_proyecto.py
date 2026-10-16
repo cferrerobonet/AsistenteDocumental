@@ -31,7 +31,15 @@ def test_el_instalador_se_llama_como_lo_busca_el_actualizador():
     from src.actualizaciones import nombre_instalador
 
     m = re.search(r"OutputBaseFilename=(\S+)", leer("installer_setup.iss"))
-    assert m.group(1).replace("{#MyAppVersion}", __version__) + ".exe" == nombre_instalador(__version__)
+    assert m.group(1).replace("{#MyAppVersion}", __version__) + ".exe" == nombre_instalador(__version__, "win32")
+
+
+def test_el_dmg_se_llama_como_lo_busca_el_actualizador():
+    from src.actualizaciones import nombre_instalador
+
+    m = re.search(r'DMG="([^"]+)"', leer(".github/workflows/compilar.yml"))
+    assert m, "el job de macOS de compilar.yml nombra el DMG en DMG=\"…\""
+    assert m.group(1).replace("${v}", __version__) == nombre_instalador(__version__, "darwin")
 
 
 def test_readme_y_changelog_dicen_la_misma_version():
