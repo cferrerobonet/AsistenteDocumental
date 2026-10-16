@@ -6,8 +6,23 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Añadido
+
+- Versión para macOS (Mac con Apple Silicon): GitHub compila siempre para Windows y macOS; el DMG lleva el `.app` con su msedgedriver, pasa la misma comprobación de que no lleva datos y una prueba de arranque, y se adjunta al *release* junto al instalador. En el Mac, la cuenta de secretaría se lee del llavero (servicio `EPLA_AUTLOGIN`), los datos van a `~/Library/Application Support/AsistenteEPLA` y el actualizador baja el DMG, nunca el `.exe`.
+
+### Corregido
+
+- La actualización automática del controlador de Edge pedía la versión a una dirección de Microsoft que ya no sirve (respondía 409) y no entendía la respuesta en UTF-16: ahora usa `msedgedriver.microsoft.com`, y las descargas van con los certificados de `certifi`.
+
+### Cambiado
+
+- `drivers/msedgedriver.exe` sale del repositorio: la compilación baja el estable del día y lo mete en el instalador, así que la app sigue arrancando sin red.
+- Dependencias: requests 2.34.2, urllib3 2.8.0, PyJWT 2.15.1 y pillow 12.3.0, con las correcciones de seguridad.
+
 ### Eliminado
 
+- `browser-cookie3`, sin uso, y lo que solo venía con ella (lz4, pycryptodomex, shadowcopy, WMI y pywin32).
+- Las dos skills de `.github/skills/`: sus reglas están ahora en `AGENTS.md`.
 - Carpeta `imágenes/`, copia idéntica de `imagenes/` (la que usan la app, la compilación y el instalador). El README y la configuración de ARM apuntan ya a `imagenes/`.
 
 ## [4.0.0] - 2026-10-15

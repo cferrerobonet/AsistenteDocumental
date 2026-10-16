@@ -46,7 +46,7 @@ $env:QT_QPA_PLATFORM="offscreen"; python -m pytest
 ```
 
 ## Operación y soporte
-- Logs rotados en `%APPDATA%/AsistenteEPLA/logs/app.log`.
+- Logs rotados en `%APPDATA%/AsistenteEPLA/logs/app.log` (en el Mac, `~/Library/Application Support/AsistenteEPLA/logs/app.log`).
 - Para diagnosticar incidencias: revisar logs + resultado de test suite + conectividad SharePoint.
 
 ## Deuda técnica pendiente (no bloqueante)

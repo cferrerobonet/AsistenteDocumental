@@ -32,7 +32,7 @@ Versión actual: **4.0.0** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
 
 | Componente | Requisito |
 |------------|-----------|
-| Sistema Operativo | Windows 10 / 11 (64 bits) |
+| Sistema Operativo | Windows 10 / 11 (64 bits) o macOS en un Mac con Apple Silicon |
 | Microsoft Edge | Versión actualizada |
 | RAM | 4 GB mínimo |
 | Espacio en disco | 500 MB |
@@ -44,9 +44,11 @@ Versión actual: **4.0.0** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
 
 ### Para usuarios finales (ejecutable)
 
-1. Descarga `Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` del último *release* del repositorio en GitHub
-2. Ejecuta el instalador
-3. Abre la aplicación desde el acceso directo
+1. Descarga del último *release* del repositorio en GitHub `Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` (Windows) o `Asistente_Documentacion_EPLA_X.Y.Z_macOS.dmg` (Mac)
+2. Windows: ejecuta el instalador. Mac: abre el DMG y arrastra la app a Aplicaciones; la primera vez, clic derecho → «Abrir» (no lleva la firma de Apple)
+3. Abre la aplicación desde el acceso directo (o desde Aplicaciones)
+
+La cuenta de secretaría se guarda una vez en el equipo: en Windows con `configurar_autologin_epla.bat` (Administrador de credenciales, `EPLA_AUTLOGIN`); en el Mac, en Terminal, con `security add-generic-password -s EPLA_AUTLOGIN -a <usuario> -w` (pide la contraseña y la guarda en el llavero).
 
 > Al primer arranque, la app verificará que el controlador de Edge es compatible con tu versión del navegador. Si no lo es, **lo descargará e instalará automáticamente** y reiniciará la app.
 
@@ -63,7 +65,7 @@ pip install -r requirements-dev.txt
 $env:QT_QPA_PLATFORM="offscreen"; python -m pytest
 ```
 
-En macOS (solo para desarrollo; la app es para Windows) el entorno virtual tiene que estar fuera de iCloud: dentro, Qt no arranca.
+En macOS el entorno virtual tiene que estar fuera de iCloud: dentro, Qt no arranca.
 
 ---
 
@@ -137,15 +139,15 @@ Notas de clasificación:
 
 ## 📰 Novedades
 
-La primera vez que se abre una versión nueva, la ventana **Novedades** cuenta qué ha cambiado (si se ha saltado alguna versión, también las de esa). El «ya visto» se guarda en `%APPDATA%\AsistenteEPLA\ajustes.json`. El botón **«Novedades»** la vuelve a abrir. El contenido está en `src/recursos/novedades.md`, escrito para la persona usuaria.
+La primera vez que se abre una versión nueva, la ventana **Novedades** cuenta qué ha cambiado (si se ha saltado alguna versión, también las de esa). El «ya visto» se guarda en `%APPDATA%\AsistenteEPLA\ajustes.json` (en el Mac, `~/Library/Application Support/AsistenteEPLA/ajustes.json`). El botón **«Novedades»** la vuelve a abrir. El contenido está en `src/recursos/novedades.md`, escrito para la persona usuaria.
 
 ## 🔄 Actualización Automática del Controlador Edge
 
-Al iniciar la app, se comprueba si el `msedgedriver.exe` es compatible con la versión de Microsoft Edge instalada. Si no lo es:
+El instalador y el `.app` llevan el `msedgedriver` estable del día en que se compilaron, así que la app funciona sin red la primera vez. Al iniciar la app, se comprueba si es compatible con la versión de Microsoft Edge instalada. Si no lo es:
 
 1. Se muestra un **diálogo de actualización** con barra de progreso
-2. Se descarga automáticamente la versión correcta desde Microsoft
-3. Se reemplaza el driver e instalado
+2. Se descarga automáticamente la versión correcta desde Microsoft (`msedgedriver.microsoft.com`)
+3. Se guarda en la carpeta de datos del usuario, sin tocar el instalado
 4. **La aplicación se reinicia sola** y abre con total normalidad
 
 ---
@@ -160,7 +162,9 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 ├── requirements-dev.txt             # + pytest y pytest-qt
 ├── Asistente_Documentacion_EPLA.spec  # Configuración PyInstaller
 ├── installer_setup.iss              # Script Inno Setup (instalador Windows)
-├── .github/workflows/compilar.yml   # Compila el exe y el instalador en GitHub
+├── AGENTS.md                        # Reglas del repositorio (QA, compilación, datos)
+├── scripts/descargar_driver.py      # Baja el msedgedriver para empaquetarlo (lo usa compilar.yml)
+├── .github/workflows/compilar.yml   # Compila en GitHub: instalador de Windows y DMG de macOS
 ├── .github/workflows/calidad.yml    # ruff y pytest en Linux en cada push
 ├── config/
 │   └── app_config.py               # Configuración de la aplicación
@@ -172,7 +176,7 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 │   ├── recursos/                    # Barlow (OFL), escudo, logo de Colegios Amigó, novedades.md
 │   ├── auth_selenium.py             # Autenticación vía navegador (Selenium)
 │   ├── auth_manager.py              # Gestor de sesión y cookies
-│   ├── secret_store.py              # Lectura segura de credenciales (Credential Manager/entorno)
+│   ├── secret_store.py              # Lectura segura de credenciales (Credential Manager, llavero de macOS o entorno)
 │   ├── driver_updater.py            # Actualización automática de msedgedriver
 │   ├── excel_processor.py           # Procesamiento de Excel
 │   ├── file_downloader.py           # Descarga de archivos
@@ -185,8 +189,7 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 │       ├── dialogo_driver.py        # Descarga del controlador de Edge
 │       ├── dialogos.py              # Aviso de versión nueva y descarga del instalador
 │       └── novedades.py             # Ventana de novedades
-├── drivers/
-│   └── msedgedriver.exe             # Controlador Edge (se actualiza automáticamente)
+├── drivers/                         # No se versiona: la compilación baja ahí el msedgedriver
 ├── imagenes/
 │   ├── logo.png                     # Logo institucional
 │   └── logo.ico                     # Icono del ejecutable
@@ -221,7 +224,7 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 
 ## 🏗️ Publicar una versión
 
-**No se compila nunca en local** (ni `pyinstaller` ni Inno Setup): el instalador lo genera GitHub Actions con `.github/workflows/compilar.yml` en un Windows x64 limpio.
+**No se compila nunca en local** (ni `pyinstaller`, ni Inno Setup, ni `hdiutil`): GitHub Actions compila siempre para los dos sistemas con `.github/workflows/compilar.yml`, el instalador en un Windows x64 limpio y el DMG en un macOS con Apple Silicon.
 
 En cada push, el flujo **Calidad** (`.github/workflows/calidad.yml`) pasa `ruff` y `pytest` en Linux, sin las dependencias de Windows; antes de etiquetar, tiene que estar en verde.
 
@@ -234,10 +237,10 @@ En cada push, el flujo **Calidad** (`.github/workflows/calidad.yml`) pasa `ruff`
    git push origin v4.0.1
    ```
 
-4. El flujo **Compilar** pasa las pruebas (`pytest`, también las de interfaz sin pantalla), comprueba que la etiqueta coincide con `__version__`, compila el exe con `Asistente_Documentacion_EPLA.spec`, comprueba que no lleva datos (`.env`, Excel, CSV…), comprueba que lleva las tipografías, el escudo y el plugin de Qt para Windows, lo arranca en modo prueba (`ASISTENTE_PRUEBA_DE_ARRANQUE=1`: abre la ventana principal y se cierra), genera el instalador con `installer_setup.iss` (la versión sale de la etiqueta) y lo adjunta al *release* `v4.0.1` (lo crea si no existe). Las apps instaladas lo verán solas al abrirse.
-5. Se espera a que termine en verde (`gh run watch`) y se descarga el instalador del *release*.
+4. El flujo **Compilar**, en Windows y en macOS, pasa las pruebas (`pytest`, también las de interfaz sin pantalla), comprueba que la etiqueta coincide con `__version__`, baja el msedgedriver estable de ese sistema (`scripts/descargar_driver.py`), compila con `Asistente_Documentacion_EPLA.spec`, comprueba que no lleva datos (`.env`, Excel, CSV…), que lleva las tipografías, el escudo, el plugin de Qt del sistema y un driver que responde, y lo arranca en modo prueba (`ASISTENTE_PRUEBA_DE_ARRANQUE=1`: abre la ventana principal y se cierra). Luego genera el instalador con `installer_setup.iss` (la versión sale de la etiqueta) y el DMG con el `.app`, y el job **publicar** adjunta los dos al *release* `v4.0.1` (lo crea si no existe). Las apps instaladas lo verán solas al abrirse.
+5. Se espera a que termine en verde (`gh run watch`) y se descargan el instalador y el DMG del *release*.
 
-Si falla, se corrige, se hace commit y se mueve la etiqueta (`git tag -f v4.0.1 && git push -f origin v4.0.1`); no se arregla compilando en local. Para probar sin publicar, se lanza a mano (`gh workflow run compilar.yml` o la pestaña *Actions*): deja el instalador como artefacto de la ejecución.
+Si falla, se corrige, se hace commit y se mueve la etiqueta (`git tag -f v4.0.1 && git push -f origin v4.0.1`); no se arregla compilando en local. Para probar sin publicar, se lanza a mano (`gh workflow run compilar.yml` o la pestaña *Actions*): deja el instalador y el DMG como artefactos de la ejecución.
 
 El instalador solo lleva el exe, `ejemplo_estudiantes.xlsx` (ficticio), el README y `documentacion/*.md`.
 
