@@ -315,7 +315,7 @@ class MainWindow(QMainWindow):
                 logger.info("Sistema de autenticación Selenium cargado")
             except ImportError as e:
                 error(self, "Error de Configuración", "No se pudo cargar Selenium.",
-                      f"{e}\n\nInstala con: pip install selenium webdriver-manager")
+                      f"{e}\n\nInstala con: pip install selenium")
                 self._restaurar_boton_sesion()
                 self._estado_sesion("Estado: Error de configuración", "error")
                 return

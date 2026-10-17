@@ -226,6 +226,12 @@ jobs:
           [ -n "$(find "$C" -name qtbase_es.qm -print -quit)" ] || faltan="$faltan traducción qtbase_es.qm"
           if [ -n "$faltan" ]; then echo "[ERROR] Faltan en el .app:$faltan"; exit 1; fi
           [ -z "$(find "$C" -type d -name tkinter -print -quit)" ] || echo "[AVISO] Se ha colado tkinter en el .app"
+          # Solo Apple Silicon: el ejecutable y el driver, arm64 y nada de Intel (x86_64).
+          for b in "$C/MacOS/Asistente_Documentacion_EPLA" "$C/Frameworks/drivers/msedgedriver"; do
+            arqs=$(lipo -archs "$b")
+            [ "$arqs" = "arm64" ] || { echo "[ERROR] $b tiene que ser solo arm64 y es: $arqs"; exit 1; }
+          done
+          echo "[OK] Arquitectura: arm64 (Apple Silicon)"
           # El driver empaquetado tiene que funcionar: es el que se usa sin red.
           driver=$("$C/Frameworks/drivers/msedgedriver" --version)
           echo "$driver" | grep -Eq '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' || { echo "[ERROR] El driver empaquetado no responde: $driver"; exit 1; }

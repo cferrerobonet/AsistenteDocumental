@@ -8,7 +8,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Añadido
 
-- Versión para macOS (Mac con Apple Silicon): GitHub compila siempre para Windows y macOS; el DMG lleva el `.app` con su msedgedriver, pasa la misma comprobación de que no lleva datos y una prueba de arranque, y se adjunta al *release* junto al instalador. En el Mac, la cuenta de secretaría se lee del llavero (servicio `EPLA_AUTLOGIN`), los datos van a `~/Library/Application Support/AsistenteEPLA` y el actualizador baja el DMG, nunca el `.exe`.
+- Versión para macOS (Mac con Apple Silicon): GitHub compila siempre para Windows y macOS; el DMG lleva el `.app` con su msedgedriver, pasa la misma comprobación de que no lleva datos y una prueba de arranque, y se adjunta al *release* junto al instalador. En el Mac, la cuenta de secretaría se lee del llavero (servicio `EPLA_AUTLOGIN`), los datos van a `~/Library/Application Support/AsistenteEPLA` y el actualizador baja el DMG, nunca el `.exe`. Solo Apple Silicon: la compilación comprueba que el ejecutable y el driver son arm64, sin Intel.
 
 ### Corregido
 
@@ -21,6 +21,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ### Eliminado
 
+- `pywebview`, `webdriver-manager` y `python-dotenv`, sin uso, y lo que solo venía con ellas (pythonnet, clr_loader, bottle y proxy_tools).
 - `browser-cookie3`, sin uso, y lo que solo venía con ella (lz4, pycryptodomex, shadowcopy, WMI y pywin32).
 - Las dos skills de `.github/skills/`: sus reglas están ahora en `AGENTS.md`.
 - Carpeta `imágenes/`, copia idéntica de `imagenes/` (la que usan la app, la compilación y el instalador). El README y la configuración de ARM apuntan ya a `imagenes/`.
