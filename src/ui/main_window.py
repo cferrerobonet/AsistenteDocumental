@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         logo = QLabel()
         logo.setPixmap(estilo.escudo(34))
         fila.addWidget(logo)
-        titulo = QLabel("Asistente de Documentación")
+        titulo = QLabel(NOMBRE_APP.removesuffix(" EPLA"))
         titulo.setFont(estilo.fuente(19, QFont.Weight.Bold, estilo.TITULAR))
         titulo.setMinimumWidth(titulo.sizeHint().width())
         fila.addWidget(titulo)

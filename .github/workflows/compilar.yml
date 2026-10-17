@@ -21,8 +21,12 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.13"
+  # Nombre visible (NOMBRE_APP de src/__init__.py, sin «_»): el .app, el volumen del DMG,
+  # la descripción del exe y el título del release. El exe y el ejecutable de dentro del
+  # .app conservan el nombre interno, y los adjuntos del release el que busca el actualizador.
+  NOMBRE: Asistente Documentación EPLA
   EXE: dist/Asistente_Documentacion_EPLA/Asistente_Documentacion_EPLA.exe
-  APP: dist/Asistente_Documentacion_EPLA.app
+  APP: dist/Asistente Documentación EPLA.app
   # Sin __pycache__ dentro de src/: PyInstaller copia esa carpeta tal cual.
   PYTHONDONTWRITEBYTECODE: "1"
 
@@ -116,6 +120,14 @@ jobs:
           $driver = & (Join-Path $int "drivers\msedgedriver.exe") --version
           if ($LASTEXITCODE -ne 0 -or $driver -notmatch "\d+\.\d+\.\d+\.\d+") { Write-Host "[ERROR] El driver empaquetado no responde: $driver"; exit 1 }
           Write-Host "[OK] $driver"
+          # El nombre que enseñan la barra de tareas y el Administrador de tareas es la
+          # descripción del exe (recurso de versión del spec), no el nombre del archivo.
+          $info = (Get-Item $env:EXE).VersionInfo
+          if ($info.FileDescription -ne $env:NOMBRE -or $info.ProductName -ne $env:NOMBRE) {
+            Write-Host "[ERROR] Descripción del exe: '$($info.FileDescription)', producto: '$($info.ProductName)'; tienen que ser '$env:NOMBRE'"
+            exit 1
+          }
+          Write-Host "[OK] Descripción del exe: $($info.FileDescription) $($info.FileVersion)"
           Write-Host "[OK] Exe: $([math]::Round((Get-Item $env:EXE).Length / 1MB, 1)) MB; carpeta: $([math]::Round(((Get-ChildItem dist -Recurse -File | Measure-Object Length -Sum).Sum) / 1MB, 1)) MB"
 
       # Que el exe exista no basta: se arranca en modo prueba (sin comprobar el
@@ -230,6 +242,12 @@ jobs:
           icono=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$C/Info.plist")
           cmp -s "$C/Resources/$icono" imagenes/icono.icns || { echo "[ERROR] El icono del .app ($icono) no es imagenes/icono.icns"; exit 1; }
           echo "[OK] Icono: $icono ($(shasum -a 256 imagenes/icono.icns | cut -c1-12))"
+          # Nombre visible en Aplicaciones, el Dock, el Launchpad y el menú: sin «_».
+          for clave in CFBundleName CFBundleDisplayName; do
+            valor=$(/usr/libexec/PlistBuddy -c "Print :$clave" "$C/Info.plist")
+            [ "$valor" = "$NOMBRE" ] || { echo "[ERROR] $clave es «$valor» y tiene que ser «$NOMBRE»"; exit 1; }
+          done
+          echo "[OK] Nombre del .app: $(basename "$APP") ($NOMBRE)"
           [ -z "$(find "$C" -type d -name tkinter -print -quit)" ] || echo "[AVISO] Se ha colado tkinter en el .app"
           # Solo Apple Silicon: el ejecutable y el driver, arm64 y nada de Intel (x86_64).
           for b in "$C/MacOS/Asistente_Documentacion_EPLA" "$C/Frameworks/drivers/msedgedriver"; do
@@ -273,7 +291,7 @@ jobs:
           ln -s /Applications dmg/Applications
           # hdiutil falla a veces en los ejecutores con «Resource busy»: hasta tres intentos.
           for intento in 1 2 3; do
-            hdiutil create -volname "Asistente de Documentación EPLA" -srcfolder dmg -ov -format UDZO "$DMG" && break
+            hdiutil create -volname "$NOMBRE" -srcfolder dmg -ov -format UDZO "$DMG" && break
             [ "$intento" -lt 3 ] || exit 1
             sleep 10
           done
@@ -312,5 +330,5 @@ jobs:
             gh release upload "$etiqueta" $archivos --clobber
           else
             gh release create "$etiqueta" $archivos \
-              --title "Asistente de Documentación EPLA ${etiqueta#v}" --generate-notes $previa
+              --title "$NOMBRE ${etiqueta#v}" --generate-notes $previa
           fi

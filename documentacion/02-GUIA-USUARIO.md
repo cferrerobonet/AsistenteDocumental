@@ -1,4 +1,4 @@
-# Guía de Usuario - Asistente de Documentación EPLA
+# Guía de Usuario - Asistente Documentación EPLA
 
 ## Objetivo
 Esta aplicación descarga y organiza adjuntos de respuestas de Microsoft Forms/SharePoint en carpetas locales por ciclo y alumno.

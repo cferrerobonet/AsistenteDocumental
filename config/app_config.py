@@ -44,7 +44,7 @@ MINIMAL_CONFIG = {
 
 # Configuración de la interfaz
 UI_CONFIG = {
-    "window_title": "Asistente de Documentación",
+    # Sin "window_title": la ventana se titula con NOMBRE_APP (src/__init__.py).
     "window_size": "700x650",  # Ventana más compacta
     "theme": "superhero",  # Tema moderno oscuro
     "logo_path": "imagenes/logo.png",

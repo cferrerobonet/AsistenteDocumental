@@ -1,4 +1,4 @@
-# Asistente de Documentación EPLA — reglas del repositorio
+# Asistente Documentación EPLA — reglas del repositorio
 
 App de escritorio de Secretaría: descarga de SharePoint/OneDrive la documentación del alumnado y la ordena por ciclo y alumno. Archivada pero en funcionamiento; repositorio **público**.
 
@@ -23,6 +23,12 @@ Reglas comunes: CLAUDE.md de usuario.
 - Solo en `src/__init__.py` (`__version__`). Se repite en `installer_setup.iss` (`MyAppVersion`), «Versión actual» del `README.md`, `CHANGELOG.md` y `src/recursos/novedades.md`; `tests/test_proyecto.py` comprueba que coinciden.
 - Los nombres de lo que se publica (`Asistente_Documentacion_EPLA_<v>_Setup.exe` y `Asistente_Documentacion_EPLA_<v>_macOS.dmg`) son los que busca `src/actualizaciones.py`; también los comprueba un test.
 - Lo que no se publica va en `## [Sin publicar]` del CHANGELOG.
+
+## Nombre
+
+- Visible (`.app`, `CFBundleName`/`CFBundleDisplayName`, DMG, accesos directos, `AppName`, descripción del exe, ventana): **Asistente Documentación EPLA**, sin «_». Sale de `NOMBRE_APP` (`src/__init__.py`), que lee el spec; `installer_setup.iss` lo repite. `tests/test_proyecto.py` lo comprueba.
+- Interno, con «_» y sin cambiar: el exe y el ejecutable del `.app` (`Asistente_Documentacion_EPLA`, accesos fijados a la barra de tareas) y los adjuntos del *release* (el actualizador de las versiones instaladas los busca así). El `AppId` de Inno Setup y el `bundle_identifier` no cambian nunca.
+- Si cambia el nombre visible: `[InstallDelete]` con los accesos directos del nombre anterior y, en el Mac, `src/app_anterior.py` con el `.app` anterior.
 
 ## QA
 

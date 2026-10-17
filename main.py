@@ -1,5 +1,5 @@
 """
-Aplicación principal - Asistente de Documentación EPLA (PyQt6)
+Aplicación principal - Asistente Documentación EPLA (PyQt6)
 """
 
 import logging
@@ -14,6 +14,7 @@ try:
     from PyQt6.QtWidgets import QApplication, QMessageBox
 
     from src import NOMBRE_APP, __version__
+    from src.app_anterior import retirar_app_antigua
     from src.driver_updater import check_and_update_driver
     from src.logger_config import setup_logging
     from src.ui import estilo
@@ -89,6 +90,8 @@ def main():
                 app.quit()
             QTimer.singleShot(3000, cerrar_prueba)
         else:
+            # macOS: fuera de Aplicaciones el .app con el nombre de hasta la 4.1.1.
+            retirar_app_antigua()
             # Primero las novedades de una versión recién instalada; luego GitHub.
             QTimer.singleShot(300, ventana.mostrar_novedades_si_toca)
             QTimer.singleShot(4000, ventana.buscar_actualizaciones)

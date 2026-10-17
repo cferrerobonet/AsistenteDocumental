@@ -1,9 +1,9 @@
-# 🎓 Asistente de Documentación EPLA - Guía de Inicio Rápido
+# 🎓 Asistente Documentación EPLA - Guía de Inicio Rápido
 
 ## 🚀 Comenzar en 3 Pasos
 
 ### 1️⃣ Ejecutar la Aplicación
-Abre **Asistente de Documentación EPLA** desde el menú Inicio o el escritorio (en desarrollo: `python main.py`).
+Abre **Asistente Documentación EPLA** desde el menú Inicio o el escritorio (en el Mac, desde Aplicaciones) (en desarrollo: `python main.py`).
 
 La ventana tiene tres pasos, de arriba abajo. La primera vez tras una actualización se abre antes la ventana **Novedades**.
 

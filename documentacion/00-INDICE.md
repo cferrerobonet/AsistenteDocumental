@@ -1,6 +1,6 @@
-# 📚 Índice de Documentación - Asistente de Documentación
+# 📚 Índice de Documentación - Asistente Documentación EPLA
 
-Bienvenido a la documentación completa del Asistente de Documentación EPLA. Los cambios de cada versión están en [CHANGELOG.md](../CHANGELOG.md).
+Bienvenido a la documentación completa del Asistente Documentación EPLA. Los cambios de cada versión están en [CHANGELOG.md](../CHANGELOG.md).
 
 ## 🚀 Documentación para Empezar
 

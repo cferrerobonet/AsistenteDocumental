@@ -1,10 +1,24 @@
 # Registro de cambios
 
-Todos los cambios relevantes del Asistente de Documentación EPLA se anotan aquí.
+Todos los cambios relevantes del Asistente Documentación EPLA se anotan aquí.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa [versionado semántico](https://semver.org/lang/es/). La versión vive en `src/__init__.py`; lo que se cuenta a la persona usuaria dentro de la app está en `src/recursos/novedades.md`.
 
 ## [Sin publicar]
+
+## [4.1.2] - 2026-10-17
+
+### Cambiado
+
+- Nombre visible sin «_» (pedido por CarlosFB el 2026-10-17): **Asistente Documentación EPLA**, con espacios y tilde, en todo lo que ve la persona usuaria. En el Mac, el `.app` pasa de `Asistente_Documentacion_EPLA.app` a `Asistente Documentación EPLA.app`, con `CFBundleName` y `CFBundleDisplayName` iguales (Aplicaciones, Dock, Launchpad y menú), y el volumen del DMG. En Windows, los accesos directos del escritorio y del menú Inicio, «Aplicaciones instaladas» (`AppName` y `UninstallDisplayName`), el instalador, la ventana y, con un recurso de versión nuevo en el exe (`FileDescription` y `ProductName`), la barra de tareas y el Administrador de tareas. El título del *release* también. Una sola fuente: `NOMBRE_APP` de `src/__init__.py`, que lee el spec; el `.iss` la repite.
+- Se quedan con el nombre interno el exe (`Asistente_Documentacion_EPLA.exe`, para que los accesos fijados a la barra de tareas sigan funcionando), el ejecutable de dentro del `.app`, `dist/` y los adjuntos del *release* (`Asistente_Documentacion_EPLA_<v>_Setup.exe` y `…_macOS.dmg`), que son los que buscan las versiones ya instaladas.
+- Windows: el instalador conserva el `AppId` (actualiza encima) y borra los accesos directos con el nombre de hasta la 4.1.1, «Asistente de Documentación EPLA» (`[InstallDelete]`); `UsePreviousGroup=no` para que el menú Inicio use la carpeta nueva.
+- La compilación comprueba la descripción del exe y el `CFBundleName` y `CFBundleDisplayName` del `.app`.
+
+### Añadido
+
+- `src/app_anterior.py`: en el Mac, la primera vez que se abre la versión nueva desde Aplicaciones, lleva a la Papelera el `Asistente_Documentacion_EPLA.app` antiguo (solo si su identificador es `es.epla.asistente-documental` y no es el que está abierto; desde el DMG no toca nada).
+- Pruebas: el nombre visible del spec (`BUNDLE` e `info_plist`, recurso de versión del exe), del `.iss` (`AppName`, accesos directos, `AppId`, `[InstallDelete]`) y del DMG, y la retirada del `.app` antiguo.
 
 ## [4.1.1] - 2026-10-17
 

@@ -1,4 +1,4 @@
-# 🎓 Asistente de Documentación EPLA
+# 🎓 Asistente Documentación EPLA
 
 <div align="center">
   <img src="imagenes/logo.png" alt="Logo Escuelas Profesionales Luis Amigó" width="150">
@@ -10,7 +10,7 @@
 
 Aplicación de escritorio para automatizar la **descarga y organización de archivos estudiantiles** desde Microsoft SharePoint/OneDrive. Diseñada para el equipo de secretaría de EPLA.
 
-Versión actual: **4.1.1** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
+Versión actual: **4.1.2** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
@@ -45,8 +45,8 @@ Versión actual: **4.1.1** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
 ### Para usuarios finales (ejecutable)
 
 1. Descarga del último *release* del repositorio en GitHub `Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` (Windows) o `Asistente_Documentacion_EPLA_X.Y.Z_macOS.dmg` (Mac)
-2. Windows: ejecuta el instalador. Mac: abre el DMG y arrastra la app a Aplicaciones; la primera vez, clic derecho → «Abrir» (no lleva la firma de Apple)
-3. Abre la aplicación desde el acceso directo (o desde Aplicaciones)
+2. Windows: ejecuta el instalador. Mac: abre el DMG y arrastra **Asistente Documentación EPLA** a Aplicaciones; la primera vez, clic derecho → «Abrir» (no lleva la firma de Apple)
+3. Abre **Asistente Documentación EPLA** desde el acceso directo (o desde Aplicaciones)
 
 La cuenta de secretaría se guarda una vez en el equipo: en Windows con `configurar_autologin_epla.bat` (Administrador de credenciales, `EPLA_AUTLOGIN`); en el Mac, en Terminal, con `security add-generic-password -s EPLA_AUTLOGIN -a <usuario> -w` (pide la contraseña y la guarda en el llavero).
 
@@ -137,6 +137,25 @@ Notas de clasificación:
 - Al aceptar, descarga `Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` con barra de progreso (solo desde direcciones `https` de GitHub; certificados de `certifi`), cierra la app y abre el instalador. Con un proceso en marcha, no se cierra a medias.
 - **«Buscar actualizaciones»** lo comprueba a mano y dice si está al día o por qué no se ha podido comprobar. Sin red o sin versiones publicadas (404), al arrancar no molesta: solo queda en el registro.
 
+## 🏷️ Nombre de la aplicación
+
+Desde la 4.1.2, lo que ve la persona usuaria se llama **Asistente Documentación EPLA**, con espacios y tilde y sin «_»: `NOMBRE_APP` de `src/__init__.py`, que leen el spec y la ventana y que `installer_setup.iss` repite (un test comprueba los dos).
+
+| Dónde | Nombre |
+| --- | --- |
+| Mac: carpeta Aplicaciones, Dock, Launchpad y menú (`CFBundleName`, `CFBundleDisplayName`) | `Asistente Documentación EPLA.app` |
+| Mac: volumen del DMG | Asistente Documentación EPLA |
+| Windows: accesos directos del escritorio y del menú Inicio, «Aplicaciones instaladas», instalador | Asistente Documentación EPLA |
+| Windows: barra de tareas y Administrador de tareas (descripción del exe) | Asistente Documentación EPLA |
+| Ventana y diálogos | Asistente Documentación EPLA |
+
+Se quedan con su nombre interno, que no ve nadie fuera de la carpeta de instalación: el exe (`Asistente_Documentacion_EPLA.exe`, al que apuntan los accesos fijados a la barra de tareas), el ejecutable de dentro del `.app` y los adjuntos del *release* (`Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` y `…_macOS.dmg`), que son los que buscan las versiones ya instaladas para actualizarse.
+
+Hasta la 4.1.1 el `.app` se llamaba `Asistente_Documentacion_EPLA.app` y los accesos directos de Windows «Asistente de Documentación EPLA». Al actualizar:
+
+- **Windows**: el instalador (mismo `AppId`) se instala encima y borra los accesos directos antiguos (`[InstallDelete]`). La carpeta de instalación de un equipo que ya la tenía no cambia.
+- **Mac**: la primera vez que se abre la versión nueva desde Aplicaciones, `src/app_anterior.py` lleva a la Papelera el `Asistente_Documentacion_EPLA.app` (solo si su identificador es `es.epla.asistente-documental`). Si no puede, hay que arrastrarlo a la Papelera a mano.
+
 ## 📰 Novedades
 
 La primera vez que se abre una versión nueva, la ventana **Novedades** cuenta qué ha cambiado (si se ha saltado alguna versión, también las de esa). El «ya visto» se guarda en `%APPDATA%\AsistenteEPLA\ajustes.json` (en el Mac, `~/Library/Application Support/AsistenteEPLA/ajustes.json`). El botón **«Novedades»** la vuelve a abrir. El contenido está en `src/recursos/novedades.md`, escrito para la persona usuaria.
@@ -169,8 +188,9 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 ├── config/
 │   └── app_config.py               # Configuración de la aplicación
 ├── src/
-│   ├── __init__.py                  # __version__: la versión, en un único sitio
+│   ├── __init__.py                  # __version__ y NOMBRE_APP (nombre visible), en un único sitio
 │   ├── actualizaciones.py           # Versión nueva en GitHub, instalador de confianza
+│   ├── app_anterior.py              # Mac: el .app con el nombre de hasta la 4.1.1, a la Papelera
 │   ├── novedades.py                 # Novedades por versión y «ya visto»
 │   ├── rutas.py                     # Carpeta de datos y recursos
 │   ├── recursos/                    # Barlow (OFL), escudo, logo de Colegios Amigó, novedades.md
@@ -201,7 +221,8 @@ ORGANIZADOR DOCUMENTOS - NUBE A LOCAL (python)/
 │   ├── test_interfaz.py             # Ventana, hilos, inicio de sesión, driver y arranque
 │   ├── test_actualizaciones.py      # Versiones, 404, URLs de confianza, instalador, diálogo
 │   ├── test_novedades.py            # Una vez por versión y botón «Novedades»
-│   └── test_proyecto.py             # Versión coherente en .iss, README y CHANGELOG
+│   ├── test_app_anterior.py         # Retirada del .app antiguo en el Mac
+│   └── test_proyecto.py             # Versión coherente en .iss, README y CHANGELOG; nombre visible sin «_»
 └── documentacion/                   # Documentación detallada
     ├── 01-INICIO_RAPIDO.md
     ├── 02-GUIA-USUARIO.md
@@ -285,6 +306,6 @@ Para uso externo o comercial, contacta con el equipo de desarrollo.
 
 ---
 
-**Versión**: 4.1.1  
+**Versión**: 4.1.2  
 **Actualización**: Octubre 2026  
 **Organización**: Escuelas Profesionales Luis Amigó · `@epla.es`

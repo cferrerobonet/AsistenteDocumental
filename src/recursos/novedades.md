@@ -1,4 +1,4 @@
-# Novedades del Asistente de Documentación EPLA
+# Novedades del Asistente Documentación EPLA
 
 <!--
 Lo lee la ventana «Novedades» de la aplicación (src/novedades.py).
@@ -6,6 +6,12 @@ Una sección por versión, la más reciente arriba: «## X.Y.Z · AAAA-MM-DD» y
 «- » por novedad. Se escribe para la persona que usa la aplicación: qué cambia para
 ella y qué tiene que hacer, sin términos técnicos. **Negrita** para el titular.
 -->
+
+## 4.1.2 · 2026-10-17
+
+- **Un nombre más claro.** La aplicación se llama ahora «Asistente Documentación EPLA», con espacios y tildes, en el escritorio, en el menú Inicio, en la carpeta Aplicaciones del Mac, en el Dock y en la barra de tareas.
+- **En Windows no tienes que hacer nada.** La actualización sustituye los accesos directos antiguos por los nuevos. Si habías anclado la aplicación a la barra de tareas, sigue funcionando.
+- **En el Mac, la versión anterior va a la Papelera.** Arrastra la nueva a Aplicaciones y ábrela desde allí: la primera vez, la aplicación lleva a la Papelera la antigua, «Asistente_Documentacion_EPLA». Si sigue en Aplicaciones, arrástrala tú a la Papelera.
 
 ## 4.1.1 · 2026-10-17
 
