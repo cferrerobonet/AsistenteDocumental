@@ -6,6 +6,17 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [4.1.1] - 2026-10-17
+
+### Cambiado
+
+- Icono propio de la aplicación (aprobado por CarlosFB el 2026-10-17): un documento con una nube de subida sobre fondo ámbar, de la misma familia que el de Partes de salida. Sustituye al logo de EPLA en el exe, el instalador y su desinstalador, el `.app` y el DMG, y en la ventana, la barra de tareas y el Dock. La fuente está en `imagenes/icono.svg` e `imagenes/icono.png`; `scripts/crear_icono.sh` genera `imagenes/icono.ico` (16 a 256 px, con Pillow) e `imagenes/icono.icns` (con sips e iconutil). El escudo de EPLA sigue en las cabeceras y en los mensajes.
+- La compilación comprueba que el `.app` lleva `imagenes/icono.icns` y que el exe y el `.app` llevan el icono de la ventana.
+
+### Eliminado
+
+- `imagenes/logo.ico`, que solo era el icono del exe y del instalador.
+
 ## [4.1.0] - 2026-10-17
 
 ### Añadido
@@ -57,6 +68,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 Las versiones anteriores a la 4.0.0 no tienen registro de cambios.
 
-[Sin publicar]: https://github.com/cferrerobonet/AsistenteDocumental/compare/v4.1.0...HEAD
+[Sin publicar]: https://github.com/cferrerobonet/AsistenteDocumental/compare/v4.1.1...HEAD
+[4.1.1]: https://github.com/cferrerobonet/AsistenteDocumental/releases/tag/v4.1.1
 [4.1.0]: https://github.com/cferrerobonet/AsistenteDocumental/releases/tag/v4.1.0
 [4.0.0]: https://github.com/cferrerobonet/AsistenteDocumental/releases/tag/v4.0.0

@@ -23,7 +23,7 @@ from PyQt6.QtGui import (
     QPixmap,
 )
 
-from src.rutas import recursos
+from src.rutas import imagenes, recursos
 
 CUERPO = "Barlow"
 TITULAR = "Barlow Condensed"
@@ -154,7 +154,10 @@ def escudo(lado: int = 64, dpr: float = 2.0) -> QPixmap:
 
 
 def icono_app() -> QIcon:
-    ruta = recursos() / "escudo.png"
+    """Icono de la ventana, de la barra de tareas y del Dock: el de la aplicación
+    (`imagenes/icono.png`, el mismo del exe y del .app). El escudo de EPLA se queda
+    en las cabeceras y en los mensajes."""
+    ruta = imagenes() / "icono.png"
     return QIcon(str(ruta)) if ruta.exists() else QIcon()
 
 

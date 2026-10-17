@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<rect x="100" y="100" width="824" height="824" rx="190" fill="#C9862A"/>
+
+<path d="M300 210 H580 L700 330 V790 a36 36 0 0 1 -36 36 H300 a36 36 0 0 1 -36 -36 V246 a36 36 0 0 1 36 -36 Z" fill="#FFFFFF"/>
+<path d="M580 210 V294 a36 36 0 0 0 36 36 H700 Z" fill="#CFE5D6"/>
+<line x1="330" y1="360" x2="520" y2="360" stroke="#1C2A20" stroke-width="30" stroke-linecap="round"/>
+<line x1="330" y1="430" x2="630" y2="430" stroke="#1C2A20" stroke-width="30" stroke-linecap="round"/>
+<line x1="330" y1="500" x2="580" y2="500" stroke="#1C2A20" stroke-width="30" stroke-linecap="round"/>
+<line x1="330" y1="570" x2="470" y2="570" stroke="#1C2A20" stroke-width="30" stroke-linecap="round"/>
+<!-- nube con flecha de subida -->
+<path d="M560 840 H800 a80 80 0 0 0 10 -159 a110 110 0 0 0 -210 -20 a90 90 0 0 0 -40 179 Z" fill="#2E7A3A" stroke="#C9862A" stroke-width="24" stroke-linejoin="round"/>
+<line x1="680" y1="800" x2="680" y2="665" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round"/>
+<path d="M625 715 L680 660 L735 715" fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+
+</svg>

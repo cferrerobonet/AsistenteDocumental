@@ -46,3 +46,10 @@ def recursos() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys._MEIPASS) / "src" / "recursos"  # type: ignore[attr-defined]
     return Path(__file__).resolve().parent / "recursos"
+
+
+def imagenes() -> Path:
+    """Icono de la aplicación y logo de EPLA (`imagenes/`), en el código o en la app congelada."""
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS) / "imagenes"  # type: ignore[attr-defined]
+    return Path(__file__).resolve().parent.parent / "imagenes"

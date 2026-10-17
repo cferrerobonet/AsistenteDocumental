@@ -7,6 +7,12 @@ Una sección por versión, la más reciente arriba: «## X.Y.Z · AAAA-MM-DD» y
 ella y qué tiene que hacer, sin términos técnicos. **Negrita** para el titular.
 -->
 
+## 4.1.1 · 2026-10-17
+
+- **Icono nuevo.** La aplicación tiene ahora su propio icono: un documento con una nube, sobre fondo ámbar, como el de las demás aplicaciones del centro. Así la encuentras de un vistazo en el escritorio, en el menú Inicio y en la carpeta Aplicaciones del Mac.
+- **También en la ventana abierta.** Mientras la usas, el mismo icono aparece en la barra de tareas de Windows y en el Dock del Mac. Dentro de la aplicación sigue el escudo de EPLA.
+- **No tienes que hacer nada.** El icono cambia al instalar esta versión. Si un acceso directo sigue con el icono antiguo, se pondrá al día en unos minutos o al reiniciar el equipo.
+
 ## 4.1.0 · 2026-10-17
 
 - **Ahora también en el Mac.** Si tienes un Mac con chip de Apple (M1 o posterior), puedes instalar la aplicación con su archivo DMG. La cuenta de secretaría se guarda en el llavero del Mac.

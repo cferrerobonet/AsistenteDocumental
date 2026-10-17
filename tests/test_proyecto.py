@@ -77,3 +77,39 @@ def test_recursos_de_la_interfaz_en_el_repositorio():
     assert {"Barlow-Regular.ttf", "Barlow-SemiBold.ttf", "BarlowCondensed-Bold.ttf",
             "BarlowCondensed-ExtraBold.ttf"} <= fuentes
     assert (recursos / "fuentes" / "OFL-Barlow.txt").exists(), "la licencia OFL viaja con las fuentes"
+
+
+def _tamanos_ico(ruta: Path) -> set[int]:
+    """Lados de las imágenes de un .ico, leyendo su cabecera (ICONDIR)."""
+    datos = ruta.read_bytes()
+    assert datos[:4] == b"\x00\x00\x01\x00", f"{ruta.name} no es un .ico"
+    total = int.from_bytes(datos[4:6], "little")
+    return {datos[6 + 16 * i] or 256 for i in range(total)}
+
+
+def test_icono_de_la_aplicacion_en_todos_los_formatos():
+    imagenes = RAIZ / "imagenes"
+    assert (imagenes / "icono.svg").exists()
+    assert (imagenes / "icono.png").read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+    assert _tamanos_ico(imagenes / "icono.ico") == {16, 24, 32, 48, 64, 128, 256}
+    assert (imagenes / "icono.icns").read_bytes()[:4] == b"icns"
+    assert (imagenes / "logo.png").exists(), "el logo de EPLA se queda en la app"
+
+
+def test_exe_instalador_y_app_llevan_el_icono_de_la_aplicacion():
+    spec = leer("Asistente_Documentacion_EPLA.spec")
+    assert "'icono.icns' if ES_MAC else 'icono.ico'" in spec
+    assert "icon=[ICONO]" in spec and "icon=ICONO" in spec
+    assert "logo.ico" not in spec
+    assert "SetupIconFile=imagenes\\icono.ico" in leer("installer_setup.iss")
+
+
+def test_la_ventana_usa_el_icono_de_la_aplicacion_y_no_el_escudo(qapp, monkeypatch):
+    from src.ui import estilo
+
+    pedidas = []
+    original = estilo.QIcon
+    monkeypatch.setattr(estilo, "QIcon", lambda *a: pedidas.append(a) or original(*a))
+    icono = estilo.icono_app()
+    assert pedidas and Path(pedidas[0][0]) == RAIZ / "imagenes" / "icono.png"
+    assert not icono.isNull()

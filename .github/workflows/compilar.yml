@@ -94,12 +94,13 @@ jobs:
             exit 1
           }
           # Lo que la interfaz PyQt6 necesita para verse bien: tipografías, escudo,
-          # novedades, el plugin de plataforma de Windows y la traducción de Qt.
+          # novedades, icono de la ventana, el plugin de plataforma de Windows y la traducción de Qt.
           $necesarios = @(
             (Join-Path $int "src\recursos\fuentes\Barlow-Regular.ttf"),
             (Join-Path $int "src\recursos\fuentes\BarlowCondensed-ExtraBold.ttf"),
             (Join-Path $int "src\recursos\escudo.png"),
             (Join-Path $int "src\recursos\novedades.md"),
+            (Join-Path $int "imagenes\icono.png"),
             (Join-Path $int "drivers\msedgedriver.exe")
           )
           $faltan = @($necesarios | Where-Object { -not (Test-Path $_) })
@@ -219,12 +220,16 @@ jobs:
           # que usa la app (sys._MEIPASS = Contents/Frameworks).
           faltan=""
           for f in src/recursos/fuentes/Barlow-Regular.ttf src/recursos/fuentes/BarlowCondensed-ExtraBold.ttf \
-                   src/recursos/escudo.png src/recursos/novedades.md drivers/msedgedriver; do
+                   src/recursos/escudo.png src/recursos/novedades.md imagenes/icono.png drivers/msedgedriver; do
             [ -e "$C/Frameworks/$f" ] || faltan="$faltan $f"
           done
           [ -n "$(find "$C" -name libqcocoa.dylib -print -quit)" ] || faltan="$faltan plugin libqcocoa.dylib"
           [ -n "$(find "$C" -name qtbase_es.qm -print -quit)" ] || faltan="$faltan traducción qtbase_es.qm"
           if [ -n "$faltan" ]; then echo "[ERROR] Faltan en el .app:$faltan"; exit 1; fi
+          # El icono del .app (Finder y Dock) es imagenes/icono.icns, el del repositorio.
+          icono=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$C/Info.plist")
+          cmp -s "$C/Resources/$icono" imagenes/icono.icns || { echo "[ERROR] El icono del .app ($icono) no es imagenes/icono.icns"; exit 1; }
+          echo "[OK] Icono: $icono ($(shasum -a 256 imagenes/icono.icns | cut -c1-12))"
           [ -z "$(find "$C" -type d -name tkinter -print -quit)" ] || echo "[AVISO] Se ha colado tkinter en el .app"
           # Solo Apple Silicon: el ejecutable y el driver, arm64 y nada de Intel (x86_64).
           for b in "$C/MacOS/Asistente_Documentacion_EPLA" "$C/Frameworks/drivers/msedgedriver"; do

@@ -12,6 +12,9 @@ import sys
 from PyInstaller.utils.hooks import collect_submodules
 
 ES_MAC = sys.platform == 'darwin'
+# Icono de la aplicación en el sistema (desde la 4.1.1; antes, el logo de EPLA): .ico en
+# Windows y .icns en macOS, generados con scripts/crear_icono.sh desde imagenes/icono.png.
+ICONO = os.path.join('imagenes', 'icono.icns' if ES_MAC else 'icono.ico')
 with open(os.path.join('src', '__init__.py'), encoding='utf-8') as f:
     VERSION = re.search(r'__version__ = "([^"]+)"', f.read()).group(1)
 
@@ -68,7 +71,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=[os.path.join('imagenes', 'logo.ico')],
+    icon=[ICONO],
 )
 coll = COLLECT(
     exe,
@@ -85,7 +88,7 @@ if ES_MAC:
     app = BUNDLE(
         coll,
         name='Asistente_Documentacion_EPLA.app',
-        icon=os.path.join('imagenes', 'logo.ico'),
+        icon=ICONO,
         bundle_identifier='es.epla.asistente-documental',
         version=VERSION,
         info_plist={
