@@ -6,6 +6,8 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [4.1.0] - 2026-10-17
+
 ### Añadido
 
 - Versión para macOS (Mac con Apple Silicon): GitHub compila siempre para Windows y macOS; el DMG lleva el `.app` con su msedgedriver, pasa la misma comprobación de que no lleva datos y una prueba de arranque, y se adjunta al *release* junto al instalador. En el Mac, la cuenta de secretaría se lee del llavero (servicio `EPLA_AUTLOGIN`), los datos van a `~/Library/Application Support/AsistenteEPLA` y el actualizador baja el DMG, nunca el `.exe`. Solo Apple Silicon: la compilación comprueba que el ejecutable y el driver son arm64, sin Intel.
@@ -18,7 +20,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 - `drivers/msedgedriver.exe` sale del repositorio: la compilación baja el estable del día y lo mete en el instalador, así que la app sigue arrancando sin red.
 - Dependencias: requests 2.34.2, urllib3 2.8.0, PyJWT 2.15.1 y pillow 12.3.0, con las correcciones de seguridad.
-- Dependencias: msal 1.39.0 y cryptography 50.0.2 (la 1.24 de msal retenía cryptography en la 43), idna 3.20 y setuptools 83.0.0, con las correcciones de seguridad; pytest 9.1.1 en las de pruebas. `pip-audit` no avisa de nada. El inicio de sesión con MSAL (`src/auth_manager.py`) se queda, sin uso, por si algún día hay administrador de Microsoft 365; las llamadas que hace no cambian.
+- Dependencias: msal 1.39.0 y cryptography 50.0.2 (la 1.24 de msal retenía cryptography en la 43), idna 3.20 y setuptools 83.0.0, con las correcciones de seguridad, y altgraph 0.17.5 (la 0.17.4 necesitaba `pkg_resources`, que esa setuptools ya no trae); pytest 9.1.1 en las de pruebas. `pip-audit` no avisa de nada. El inicio de sesión con MSAL (`src/auth_manager.py`) se queda, sin uso, por si algún día hay administrador de Microsoft 365; las llamadas que hace no cambian.
 
 ### Eliminado
 
@@ -55,5 +57,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 Las versiones anteriores a la 4.0.0 no tienen registro de cambios.
 
-[Sin publicar]: https://github.com/cferrerobonet/AsistenteDocumental/compare/v4.0.0...HEAD
+[Sin publicar]: https://github.com/cferrerobonet/AsistenteDocumental/compare/v4.1.0...HEAD
+[4.1.0]: https://github.com/cferrerobonet/AsistenteDocumental/releases/tag/v4.1.0
 [4.0.0]: https://github.com/cferrerobonet/AsistenteDocumental/releases/tag/v4.0.0

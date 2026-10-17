@@ -6,7 +6,7 @@
 
 #define MyAppName "Asistente de Documentación EPLA"
 #ifndef MyAppVersion
-  #define MyAppVersion "4.0.0"
+  #define MyAppVersion "4.1.0"
 #endif
 #define MyAppPublisher "EPLA"
 #define MyAppExeName "Asistente_Documentacion_EPLA.exe"

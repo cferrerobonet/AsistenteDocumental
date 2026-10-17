@@ -5,5 +5,5 @@ novedades y la compilación de GitHub (`.github/workflows/compilar.yml`). Un tes
 comprueba que `installer_setup.iss`, el README y el CHANGELOG dicen lo mismo.
 """
 
-__version__ = "4.0.0"
+__version__ = "4.1.0"
 NOMBRE_APP = "Asistente de Documentación EPLA"

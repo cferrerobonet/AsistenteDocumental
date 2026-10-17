@@ -10,7 +10,7 @@
 
 Aplicación de escritorio para automatizar la **descarga y organización de archivos estudiantiles** desde Microsoft SharePoint/OneDrive. Diseñada para el equipo de secretaría de EPLA.
 
-Versión actual: **4.0.0** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
+Versión actual: **4.1.0** · cambios en [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
@@ -282,6 +282,6 @@ Para uso externo o comercial, contacta con el equipo de desarrollo.
 
 ---
 
-**Versión**: 4.0.0  
+**Versión**: 4.1.0  
 **Actualización**: Octubre 2026  
 **Organización**: Escuelas Profesionales Luis Amigó · `@epla.es`
