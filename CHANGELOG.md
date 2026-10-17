@@ -18,6 +18,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 - `drivers/msedgedriver.exe` sale del repositorio: la compilación baja el estable del día y lo mete en el instalador, así que la app sigue arrancando sin red.
 - Dependencias: requests 2.34.2, urllib3 2.8.0, PyJWT 2.15.1 y pillow 12.3.0, con las correcciones de seguridad.
+- Dependencias: msal 1.39.0 y cryptography 50.0.2 (la 1.24 de msal retenía cryptography en la 43), idna 3.20 y setuptools 83.0.0, con las correcciones de seguridad; pytest 9.1.1 en las de pruebas. `pip-audit` no avisa de nada. El inicio de sesión con MSAL (`src/auth_manager.py`) se queda, sin uso, por si algún día hay administrador de Microsoft 365; las llamadas que hace no cambian.
 
 ### Eliminado
 
