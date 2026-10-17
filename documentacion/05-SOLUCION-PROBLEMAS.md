@@ -70,6 +70,7 @@ Al arrancar, estos fallos no se avisan: solo quedan en `%APPDATA%\AsistenteEPLA\
 ## 7) La actualización no se instala
 - Si hay un proceso en marcha, la app no se cierra a medias: espera a que termine y vuelve a pulsar el botón dorado **Actualizar**.
 - El instalador pide permiso de administrador; sin él, no se instala.
+- Mac: la app se sustituye sola en su carpeta (desde la versión posterior a la 4.1.2). Si sigue la anterior o vuelve el mismo aviso, mira `~/Library/Application Support/AsistenteEPLA/logs/actualizacion_mac_*.log` y comprueba que no hay dos copias (por ejemplo, en `/Applications` y en `/Applications/EPLA`); deja solo la nueva en la carpeta de siempre.
 
 ## 8) OneDrive bloquea operaciones Git
 ### Síntoma

@@ -28,7 +28,7 @@ Reglas comunes: CLAUDE.md de usuario.
 
 - Visible (`.app`, `CFBundleName`/`CFBundleDisplayName`, DMG, accesos directos, `AppName`, descripción del exe, ventana): **Asistente Documentación EPLA**, sin «_». Sale de `NOMBRE_APP` (`src/__init__.py`), que lee el spec; `installer_setup.iss` lo repite. `tests/test_proyecto.py` lo comprueba.
 - Interno, con «_» y sin cambiar: el exe y el ejecutable del `.app` (`Asistente_Documentacion_EPLA`, accesos fijados a la barra de tareas) y los adjuntos del *release* (el actualizador de las versiones instaladas los busca así). El `AppId` de Inno Setup y el `bundle_identifier` no cambian nunca.
-- Si cambia el nombre visible: `[InstallDelete]` con los accesos directos del nombre anterior y, en el Mac, `src/app_anterior.py` con el `.app` anterior.
+- Si cambia el nombre visible: `[InstallDelete]` con los accesos directos del nombre anterior y, en el Mac, `src/app_anterior.py` con el `.app` anterior. El actualizador del Mac (`src/actualizar_mac.py`, común con Partes y Guardias) ya coloca la nueva con su nombre en la carpeta donde está instalada y retira la vieja.
 
 ## QA
 

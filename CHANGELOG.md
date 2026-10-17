@@ -6,6 +6,11 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+### Corregido
+
+- **macOS: la actualización sustituye la app allí donde está instalada** (pedido por CarlosFB el 2026-10-17). Hasta ahora se abría el DMG y, al arrastrar la app al acceso «Applications», la versión nueva quedaba en `/Applications` mientras el Dock seguía abriendo la vieja (por ejemplo, la de `/Applications/EPLA`), que volvía a avisar de la misma actualización. Ahora, tras la descarga y con la ventana ya cerrada, el DMG se monta sin el Finder y un script auxiliar espera a que la app termine, copia la nueva con `ditto` junto a la vieja, la pone en su sitio **con el nombre del `.app` nuevo** y retira la vieja aunque se llame distinto (de `Asistente_Documentacion_EPLA.app` a `Asistente Documentación EPLA.app`, sin que queden las dos), le quita la cuarentena, desmonta el DMG y la abre. Si la copia falla, deja la anterior en su sitio, la abre y avisa. Sin permiso de escritura en la carpeta (o en desarrollo), abre el DMG como antes y dice a qué carpeta arrastrarla. Registro: `~/Library/Application Support/AsistenteEPLA/logs/actualizacion_mac_*.log`. Es `src/actualizar_mac.py`, el mismo módulo que Partes de salida y Guardias de patio.
+- **Solo funciona a partir de la versión que lo lleve.** La actualización *a* esa versión todavía va por el camino antiguo: arrastrar la app del DMG a la carpeta donde está instalada y sustituir la anterior (`src/app_anterior.py` sigue retirando el `.app` con el nombre de antes). En Windows no cambia nada: el instalador ya sustituye en la carpeta de antes (mismo `AppId`).
+
 ## [4.1.2] - 2026-10-17
 
 ### Cambiado

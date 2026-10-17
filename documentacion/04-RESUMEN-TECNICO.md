@@ -25,6 +25,7 @@
 - `GET https://api.github.com/repos/cferrerobonet/AsistenteDocumental/releases/latest` (sin cuenta, 5 s) y, si falla (límite de 60 consultas por hora y por IP), la web `/releases/latest`, que redirige a la etiqueta.
 - Compara con `__version__`; elige el adjunto `Asistente_Documentacion_EPLA_<versión>_Setup.exe` (o, si no está, otro `Asistente_Documentacion_EPLA_*_Setup.exe`), solo de `https` de GitHub (`url_de_confianza`, también tras redirecciones). TLS con `certifi`.
 - Un 404 (sin versiones publicadas o repositorio privado) o la falta de red solo se anotan; el botón «Buscar actualizaciones» sí lo explica.
+- macOS: `src/actualizar_mac.py` (mismo archivo que Partes de salida y Guardias de patio) monta el DMG (`hdiutil attach -nobrowse -readonly -mountrandom`), toma el `.app` en uso de `sys.executable` y lanza un script separado que, cerrada la app, copia la nueva con `ditto` a una carpeta hermana, aparta la vieja, coloca la nueva con su nombre, quita la cuarentena, borra la vieja, desmonta y abre la nueva; si falla, restaura la vieja y avisa con un diálogo del sistema. Sin bundle, sin permiso de escritura o con un DMG que no trae esta app (otro `CFBundleIdentifier`), abre el DMG. Pruebas: `tests/test_actualizar_mac.py`.
 
 ## Cambios relevantes recientes
 1. Clasificación por ciclo/especialidad y soporte CSV.

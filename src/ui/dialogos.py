@@ -16,7 +16,7 @@ from pathlib import Path
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 from PyQt6.QtWidgets import QApplication, QMessageBox, QProgressDialog
 
-from src import NOMBRE_APP, __version__
+from src import NOMBRE_APP, __version__, actualizaciones, actualizar_mac
 from src.actualizaciones import (
     PAGINA_DE_RELEASES,
     abrir_instalador,
@@ -24,6 +24,7 @@ from src.actualizaciones import (
     contexto_ssl,
     url_de_confianza,
 )
+from src.rutas import CARPETA, base_del_sistema
 from src.ui import estilo
 from src.ui.componentes import error, informar
 
@@ -75,10 +76,11 @@ def dialogo_de_confirmacion(padre, version: str, notas: str = "") -> QMessageBox
         caja.setIcon(QMessageBox.Icon.Question)
     caja.setWindowTitle(f"{NOMBRE_APP} {version}")
     caja.setText(f"Hay una versión nueva: {version}. ¿Descargarla e instalarla?")
-    explicacion = (
-        f"Tienes la {__version__}. Se descarga, se cierra la aplicación y se abre el instalador; "
-        "tus carpetas y archivos no se tocan."
-    )
+    if actualizaciones.SISTEMA == "darwin":
+        como = "se cierra la aplicación, se cambia por la nueva en su misma carpeta y se vuelve a abrir"
+    else:
+        como = "se cierra la aplicación y se abre el instalador"
+    explicacion = f"Tienes la {__version__}. Se descarga, {como}; tus carpetas y archivos no se tocan."
     notas = (notas or "").strip()
     if notas:
         caja.setInformativeText(explicacion + "\n\nPulsa «Mostrar los detalles…» para ver qué trae.")
@@ -199,7 +201,7 @@ def descargar_e_instalar(padre, url: str, version: str = "") -> QProgressDialog:
 
 
 def instalar_y_salir(padre, ruta: str) -> None:
-    """Lanza el instalador y cierra la aplicación.
+    """Lanza el instalador (en macOS, la sustitución) y cierra la aplicación.
 
     Con la app abierta su ejecutable está en uso y el instalador no puede
     reemplazarlo (en Guardias se quedaba en «DeleteFile falló; código 5»). Si la
@@ -215,7 +217,16 @@ def instalar_y_salir(padre, ruta: str) -> None:
                 "Cierra el asistente cuando termine el proceso y vuelve a pulsar «Actualizar» para instalar la versión nueva.",
             )
             return
-    logger.info("Se lanza el instalador %s", ruta)
-    abrir_instalador(ruta)
+    if actualizaciones.SISTEMA == "darwin":
+        # Se sustituye la app allí donde está instalada (también /Applications/EPLA):
+        # el script auxiliar espera a que se cierre. Si no se puede, se abre el DMG.
+        logger.info("Se sustituye la aplicación con %s", ruta)
+        registros = Path(base_del_sistema()) / CARPETA / "logs"
+        resultado = actualizar_mac.instalar(Path(ruta), registros)
+        if not resultado.sustituida:
+            informar(None, "Actualización", resultado.aviso)
+    else:
+        logger.info("Se lanza el instalador %s", ruta)
+        abrir_instalador(ruta)
     if app is not None:
         app.quit()

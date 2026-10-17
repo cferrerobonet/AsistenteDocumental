@@ -135,6 +135,7 @@ Notas de clasificación:
 - Al abrir, la app pregunta a GitHub (sin cuenta) por la última versión publicada (`/releases/latest` del repositorio `cferrerobonet/AsistenteDocumental`) y la compara con la instalada.
 - Si hay una nueva, aparece el botón dorado **«↑ Actualizar a X.Y.Z»** y un aviso con el escudo, las notas de la versión («Mostrar los detalles…») y **«Actualizar ahora»**.
 - Al aceptar, descarga `Asistente_Documentacion_EPLA_X.Y.Z_Setup.exe` con barra de progreso (solo desde direcciones `https` de GitHub; certificados de `certifi`), cierra la app y abre el instalador. Con un proceso en marcha, no se cierra a medias.
+- **En el Mac** (desde la versión posterior a la 4.1.2) descarga `…_macOS.dmg`, se cierra y `src/actualizar_mac.py` cambia la app por la nueva **en la carpeta donde está instalada** (también `/Applications/EPLA`), con el nombre del `.app` nuevo y sin dejar la vieja, y la vuelve a abrir. Si la copia falla, se queda la anterior y avisa. Sin permiso para escribir en esa carpeta, abre el DMG y dice a qué carpeta arrastrarla. Registro: `~/Library/Application Support/AsistenteEPLA/logs/actualizacion_mac_*.log`.
 - **«Buscar actualizaciones»** lo comprueba a mano y dice si está al día o por qué no se ha podido comprobar. Sin red o sin versiones publicadas (404), al arrancar no molesta: solo queda en el registro.
 
 ## 🏷️ Nombre de la aplicación

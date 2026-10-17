@@ -320,3 +320,27 @@ def test_sin_notas_lo_dice(qtbot, estilo_aplicado):
     caja = dialogo_de_confirmacion(None, "9.9.9", "")
     qtbot.addWidget(caja)
     assert "no trae notas" in caja.informativeText()
+
+
+def test_en_macos_se_sustituye_la_app_donde_esta_instalada(qtbot, monkeypatch, tmp_path, estilo_aplicado):
+    """El DMG ya no se abre sin más: `actualizar_mac` cambia la app en su carpeta (también /Applications/EPLA)."""
+    from PyQt6.QtWidgets import QApplication
+
+    from src import actualizar_mac
+    from src.rutas import CARPETA, base_del_sistema
+    from src.ui import dialogos
+
+    monkeypatch.setattr(act, "SISTEMA", "darwin")
+    lanzados, salidas, pedidas, avisos = [], [], [], []
+    monkeypatch.setattr(dialogos, "abrir_instalador", lanzados.append)
+    monkeypatch.setattr(QApplication, "quit", lambda *a: salidas.append(True))
+    monkeypatch.setattr(dialogos, "informar", lambda padre, titulo, texto, *a: avisos.append(texto))
+    monkeypatch.setattr(
+        actualizar_mac,
+        "instalar",
+        lambda dmg, registros: pedidas.append((dmg, registros)) or actualizar_mac.Resultado(False, "arrástrala"),
+    )
+    dialogos.instalar_y_salir(None, str(tmp_path / DMG.format(v="9.9.9")))
+    assert pedidas == [(tmp_path / DMG.format(v="9.9.9"), base_del_sistema() / CARPETA / "logs")]
+    assert lanzados == [] and salidas == [True]
+    assert avisos == ["arrástrala"], "en la vía manual se dice a qué carpeta arrastrarla"
